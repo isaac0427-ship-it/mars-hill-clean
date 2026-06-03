@@ -1,33 +1,12 @@
 import { useMemo, useState } from "react";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
-
-type Book = {
-  title: string;
-  author: string;
-  era: "Reformation" | "Puritan" | "Modern" | "Patristic" | "Apologetics";
-  year: string;
-  note: string;
-};
-
-const books: Book[] = [
-  { title: "Institutes of the Christian Religion", author: "John Calvin", era: "Reformation", year: "1559", note: "The cornerstone of Reformed systematic theology." },
-  { title: "The Bondage of the Will", author: "Martin Luther", era: "Reformation", year: "1525", note: "The hinge of the Reformation — grace, will, and Scripture." },
-  { title: "On the Incarnation", author: "Athanasius", era: "Patristic", year: "318", note: "The classic defense of the divinity of the Son." },
-  { title: "Confessions", author: "Augustine", era: "Patristic", year: "400", note: "The soul laid bare before a sovereign God." },
-  { title: "The Religious Affections", author: "Jonathan Edwards", era: "Puritan", year: "1746", note: "On the marks of true gracious affection in the soul." },
-  { title: "Pilgrim's Progress", author: "John Bunyan", era: "Puritan", year: "1678", note: "An allegory of the Christian life — unrivaled." },
-  { title: "The Mortification of Sin", author: "John Owen", era: "Puritan", year: "1656", note: "Be killing sin or it will be killing you." },
-  { title: "Christianity and Liberalism", author: "J. Gresham Machen", era: "Modern", year: "1923", note: "A bracing defense of historic Christian faith." },
-  { title: "The Inspiration and Authority of the Bible", author: "B. B. Warfield", era: "Modern", year: "1948", note: "Princeton's defense of Scripture." },
-  { title: "Mere Christianity", author: "C. S. Lewis", era: "Apologetics", year: "1952", note: "Accessible Christian apologetics at its finest." },
-  { title: "The Reason for God", author: "Timothy Keller", era: "Apologetics", year: "2008", note: "Apologetics for the skeptical and the seeking." },
-  { title: "Reasonable Faith", author: "William Lane Craig", era: "Apologetics", year: "2008", note: "The Kalam argument and a rigorous case for theism." },
-];
+import { useContent } from "@/context/ContentContext";
 
 const eras = ["All", "Patristic", "Reformation", "Puritan", "Modern", "Apologetics"] as const;
 
 export default function LibraryPage() {
+  const { books } = useContent();
   const [q, setQ] = useState("");
   const [era, setEra] = useState<(typeof eras)[number]>("All");
 
@@ -40,7 +19,7 @@ export default function LibraryPage() {
           b.title.toLowerCase().includes(needle) ||
           b.author.toLowerCase().includes(needle)),
     );
-  }, [q, era]);
+  }, [books, q, era]);
 
   return (
     <main className="relative min-h-screen bg-background text-foreground">
@@ -88,9 +67,9 @@ export default function LibraryPage() {
           </div>
 
           <ul className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {list.map((b) => (
+            {list.map((b, idx) => (
               <li
-                key={b.title}
+                key={idx}
                 className="group rounded-3xl border border-border bg-white p-7 shadow-soft transition hover:-translate-y-1 hover:border-gold hover:shadow-[var(--shadow-luxe)]"
               >
                 <div className="flex items-center justify-between">

@@ -1,14 +1,10 @@
 import podcast from "@/assets/podcast.jpg";
 import { PodcastPlayer } from "./PodcastPlayer";
-
-const episodes = [
-  { n: "01", title: "Calvin on the Knowledge of God", length: "42 min" },
-  { n: "02", title: "B.B. Warfield on Inspiration", length: "38 min" },
-  { n: "03", title: "Luther's Bondage of the Will", length: "51 min" },
-  { n: "04", title: "Machen — Christianity and Liberalism", length: "47 min" },
-];
+import { useContent } from "@/context/ContentContext";
 
 export function Podcast() {
+  const { episodes } = useContent();
+
   return (
     <section id="podcast" className="relative overflow-hidden navy-bg py-32 text-cloud lg:py-40">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_85%_15%,color-mix(in_oklab,var(--sky)_30%,transparent)_0%,transparent_55%)]" />
@@ -93,9 +89,9 @@ export function Podcast() {
             </div>
 
             <ul className="mt-6 divide-y divide-white/10 rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur">
-              {episodes.map((e) => (
+              {episodes.map((e, idx) => (
                 <li
-                  key={e.n}
+                  key={idx}
                   className="group flex items-center gap-6 px-6 py-5 transition hover:bg-white/[0.04]"
                 >
                   <span className="font-display text-xl text-gold">{e.n}</span>

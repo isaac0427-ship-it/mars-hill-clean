@@ -2,15 +2,11 @@ import podcast from "@/assets/podcast.jpg";
 import { Nav } from "@/components/site/Nav";
 import { Footer } from "@/components/site/Footer";
 import { PodcastPlayer } from "@/components/site/PodcastPlayer";
-
-const episodes = [
-  { n: "01", title: "Calvin on the Knowledge of God", length: "42 min" },
-  { n: "02", title: "B.B. Warfield on Inspiration", length: "38 min" },
-  { n: "03", title: "Luther's Bondage of the Will", length: "51 min" },
-  { n: "04", title: "Machen — Christianity and Liberalism", length: "47 min" },
-];
+import { useContent } from "@/context/ContentContext";
 
 export default function PodcastPage() {
+  const { episodes } = useContent();
+
   return (
     <main className="relative min-h-screen bg-background text-foreground">
       <Nav />
@@ -66,7 +62,6 @@ export default function PodcastPage() {
         <div className="relative mx-auto max-w-7xl px-6 lg:px-10">
           <div className="grid gap-8 lg:grid-cols-12">
             <div className="lg:col-span-7 lg:col-start-6">
-              {/* Featured episode image */}
               <div className="relative overflow-hidden rounded-3xl ring-1 ring-white/10">
                 <img
                   src={podcast}
@@ -104,11 +99,10 @@ export default function PodcastPage() {
                 </div>
               </div>
 
-              {/* Episode list */}
               <ul className="mt-6 divide-y divide-white/10 rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur">
-                {episodes.map((e) => (
+                {episodes.map((e, idx) => (
                   <li
-                    key={e.n}
+                    key={idx}
                     className="group flex items-center gap-6 px-6 py-5 transition hover:bg-white/[0.04]"
                   >
                     <span className="font-display text-xl text-gold">{e.n}</span>
@@ -125,7 +119,6 @@ export default function PodcastPage() {
             </div>
           </div>
 
-          {/* Warfield quote */}
           <div className="mt-24 border-t border-white/10 pt-16 text-center">
             <p className="eyebrow text-gold">B.B. Warfield</p>
             <blockquote className="mx-auto mt-6 max-w-3xl font-display text-2xl font-light italic leading-snug sm:text-3xl">

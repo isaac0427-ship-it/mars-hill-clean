@@ -1,28 +1,10 @@
 import { useMemo, useState } from "react";
-
-type Paper = {
-  title: string;
-  category: "Doctrine" | "World Religions" | "Culture" | "History" | "Philosophy";
-  year: string;
-  summary: string;
-};
-
-const papers: Paper[] = [
-  { title: "The Arian Controversy", category: "History", year: "MMXX", summary: "On the fourth-century battle over the divinity of Christ and the Nicene response." },
-  { title: "The Bible vs. the Qur'an", category: "World Religions", year: "MMXXI", summary: "A textual and theological comparison of two competing scriptural canons." },
-  { title: "Critical Race Theory", category: "Culture", year: "MMXXII", summary: "A Reformed evaluation of CRT's underlying anthropology and worldview." },
-  { title: "Islam — A Two-Page Summary", category: "World Religions", year: "MMXX", summary: "A concise primer on Islamic origins, theology, and key apologetic concerns." },
-  { title: "The Kalam Cosmological Argument", category: "Philosophy", year: "MMXXII", summary: "On the classical theistic argument from the universe's beginning." },
-  { title: "Matthew 25 — The Sheep & the Goats", category: "Doctrine", year: "MMXXI", summary: "Exegesis of the great judgment and the identity of 'the least of these.'" },
-  { title: "Radical Two-Kingdom Theology", category: "Doctrine", year: "MMXXII", summary: "An examination and critique of the R2K project within Reformed circles." },
-  { title: "Tacitus, The Annals 15:44", category: "History", year: "MMXX", summary: "Roman testimony to Christ and the early Christian movement." },
-  { title: "The United Pentecostal Church", category: "Doctrine", year: "MMXXI", summary: "Modalism, oneness theology, and the historic doctrine of the Trinity." },
-  { title: "Why God Allows Evil", category: "Philosophy", year: "MMXXIII", summary: "A theodicy rooted in the sovereignty and goodness of God." },
-];
+import { useContent } from "@/context/ContentContext";
 
 const categories = ["All", "Doctrine", "World Religions", "Culture", "History", "Philosophy"] as const;
 
 export function Papers() {
+  const { papers } = useContent();
   const [query, setQuery] = useState("");
   const [cat, setCat] = useState<(typeof categories)[number]>("All");
 
@@ -34,7 +16,7 @@ export function Papers() {
         !q || p.title.toLowerCase().includes(q) || p.summary.toLowerCase().includes(q);
       return matchesCat && matchesQ;
     });
-  }, [cat, query]);
+  }, [papers, cat, query]);
 
   return (
     <section id="papers" className="relative heaven-bg py-32 lg:py-40">
@@ -81,9 +63,9 @@ export function Papers() {
         </div>
 
         <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filtered.map((p) => (
+          {filtered.map((p, idx) => (
             <article
-              key={p.title}
+              key={idx}
               className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-white p-7 shadow-soft transition hover:-translate-y-1 hover:border-gold/40 hover:shadow-[var(--shadow-luxe)]"
             >
               <div className="flex items-start justify-between">
@@ -104,10 +86,20 @@ export function Papers() {
                 <span className="text-[10px] font-medium uppercase tracking-[0.22em] text-slate-ink">
                   PDF · A4
                 </span>
-                <span className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-navy transition group-hover:text-gold">
-                  Read paper
-                  <span className="transition-transform group-hover:translate-x-1">→</span>
-                </span>
+                {p.pdfUrl ? (
+                  <a
+                    href={p.pdfUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-navy transition group-hover:text-gold"
+                  >
+                    Read paper <span className="transition-transform group-hover:translate-x-1">→</span>
+                  </a>
+                ) : (
+                  <span className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-navy transition group-hover:text-gold">
+                    Read paper <span className="transition-transform group-hover:translate-x-1">→</span>
+                  </span>
+                )}
               </div>
             </article>
           ))}
