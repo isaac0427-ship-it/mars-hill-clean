@@ -1,8 +1,10 @@
-const SPOTIFY = "https://open.spotify.com/show/4xnDbJFrb1gpwHfyEabZoG";
-const YOUTUBE = "https://www.youtube.com/channel/UCIDs8zPms4tbsYJKOu";
-const FACEBOOK = "https://www.facebook.com/marshillapologetics";
+import { useContent } from "@/context/ContentContext";
 
 export function Footer() {
+  const { getSetting } = useContent();
+  const SPOTIFY  = getSetting("spotify_url",  "https://open.spotify.com/show/4xnDbJFrb1gpwHfyEabZoG");
+  const YOUTUBE  = getSetting("youtube_url",  "https://www.youtube.com/channel/UCIDs8zPms4tbsYJKOu");
+  const FACEBOOK = getSetting("facebook_url", "https://www.facebook.com/marshillapologetics");
   return (
     <footer className="relative border-t border-border bg-cloud">
       <div className="mx-auto max-w-7xl px-6 py-20 lg:px-10">

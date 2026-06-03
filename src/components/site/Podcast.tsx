@@ -2,11 +2,10 @@ import podcast from "@/assets/podcast.jpg";
 import { PodcastPlayer } from "./PodcastPlayer";
 import { useContent } from "@/context/ContentContext";
 
-const SPOTIFY = "https://open.spotify.com/show/4xnDbJFrb1gpwHfyEabZoG";
-const YOUTUBE = "https://www.youtube.com/channel/UCIDs8zPms4tbsYJKOu";
-
 export function Podcast() {
-  const { episodes } = useContent();
+  const { episodes, getSetting } = useContent();
+  const SPOTIFY = getSetting("spotify_url", "https://open.spotify.com/show/4xnDbJFrb1gpwHfyEabZoG");
+  const YOUTUBE = getSetting("youtube_url", "https://www.youtube.com/channel/UCIDs8zPms4tbsYJKOu");
 
   return (
     <section id="podcast" className="relative overflow-hidden navy-bg py-32 text-cloud lg:py-40">

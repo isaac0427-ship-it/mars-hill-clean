@@ -1,9 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-
-const SPOTIFY = "https://open.spotify.com/show/4xnDbJFrb1gpwHfyEabZoG";
-const YOUTUBE = "https://www.youtube.com/channel/UCIDs8zPms4tbsYJKOu";
-const FACEBOOK = "https://www.facebook.com/marshillapologetics";
+import { useContent } from "@/context/ContentContext";
 
 // Links shown inline in the bar (desktop)
 const quickLinks = [
@@ -34,6 +31,10 @@ export function Nav() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const location = useLocation();
+  const { getSetting } = useContent();
+  const SPOTIFY  = getSetting("spotify_url",  "https://open.spotify.com/show/4xnDbJFrb1gpwHfyEabZoG");
+  const YOUTUBE  = getSetting("youtube_url",  "https://www.youtube.com/channel/UCIDs8zPms4tbsYJKOu");
+  const FACEBOOK = getSetting("facebook_url", "https://www.facebook.com/marshillapologetics");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);

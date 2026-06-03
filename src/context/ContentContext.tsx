@@ -1,52 +1,26 @@
-import { createContext, useContext, useEffect, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import { supabase } from "@/lib/supabase";
 
-// ── Types ────────────────────────────────────────────────────────────────────
+// ── Types ─────────────────────────────────────────────────────────────────────
 
-export type PaperCategory =
-  | "Doctrine"
-  | "World Religions"
-  | "Culture"
-  | "History"
-  | "Philosophy";
+export type PaperCategory = "Doctrine" | "World Religions" | "Culture" | "History" | "Philosophy";
+export type BookEra = "Patristic" | "Reformation" | "Puritan" | "Modern" | "Apologetics";
+export type EventType = "in-person" | "zoom" | "hybrid";
 
-export type BookEra =
-  | "Patristic"
-  | "Reformation"
-  | "Puritan"
-  | "Modern"
-  | "Apologetics";
+export type Paper   = { id: string; title: string; category: PaperCategory; year: string; summary: string; pdf_link?: string | null; };
+export type Book    = { id: string; title: string; author: string; era: BookEra; year: string; note: string; };
+export type Episode = { id: string; number: string; title: string; length: string; };
+export type Event   = { id: string; title: string; date_text: string; location: string; type: EventType; };
+export type BlogPost = { id: string; title: string; category: string; date_text: string; summary: string; content: string; };
+export type SiteSettings = Record<string, string>;
 
-export type Paper = {
-  id: string;
-  title: string;
-  category: PaperCategory;
-  year: string;
-  summary: string;
-  pdf_link?: string | null;
-};
+type PaperSeed    = Omit<Paper, "id">;
+type BookSeed     = Omit<Book, "id">;
+type EpisodeSeed  = Omit<Episode, "id">;
+type EventSeed    = Omit<Event, "id">;
+type BlogPostSeed = Omit<BlogPost, "id">;
 
-export type Book = {
-  id: string;
-  title: string;
-  author: string;
-  era: BookEra;
-  year: string;
-  note: string;
-};
-
-export type Episode = {
-  id: string;
-  number: string;
-  title: string;
-  length: string;
-};
-
-// ── Seed data (used when tables are empty on first run) ───────────────────────
-
-type PaperSeed = Omit<Paper, "id">;
-type BookSeed = Omit<Book, "id">;
-type EpisodeSeed = Omit<Episode, "id">;
+// ── Seed / default data ───────────────────────────────────────────────────────
 
 export const SEED_PAPERS: PaperSeed[] = [
   { title: "The Arian Controversy", category: "History", year: "MMXX", summary: "On the fourth-century battle over the divinity of Christ and the Nicene response.", pdf_link: "https://marshillapologetics.com/wp-content/uploads/2024/03/arian-controversy.pdf" },
@@ -83,28 +57,75 @@ export const SEED_EPISODES: EpisodeSeed[] = [
   { number: "04", title: "Machen — Christianity and Liberalism", length: "47 min" },
 ];
 
-// Display-safe defaults shown while Supabase is loading
-const DISPLAY_PAPERS: Paper[] = SEED_PAPERS.map((p, i) => ({ id: `loading-${i}`, ...p }));
-const DISPLAY_BOOKS: Book[] = SEED_BOOKS.map((b, i) => ({ id: `loading-${i}`, ...b }));
-const DISPLAY_EPISODES: Episode[] = SEED_EPISODES.map((e, i) => ({ id: `loading-${i}`, ...e }));
+export const SEED_EVENTS: EventSeed[] = [
+  { title: "The Sovereignty of God in Suffering", date_text: "Mar 14", location: "In Person · CT", type: "in-person" },
+  { title: "Reading Calvin's Institutes, Book I", date_text: "Apr 11", location: "Hybrid · Zoom", type: "hybrid" },
+  { title: "Machen on Liberalism, a Century Later", date_text: "May 09", location: "Guest Speaker", type: "hybrid" },
+];
 
-// ── Context ───────────────────────────────────────────────────────────────────
+export const SEED_BLOG_POSTS: BlogPostSeed[] = [
+  { title: "On the Knowledge of God", category: "Theology", date_text: "May 28, 2026", summary: "Calvin opens the Institutes with a hinge: we cannot know ourselves without knowing God, nor God without knowing ourselves. A meditation.", content: "" },
+  { title: "The Kalam Argument, Revisited", category: "Apologetics", date_text: "May 14, 2026", summary: "A short defense of the second premise — that the universe began to exist — drawing on contemporary cosmology and classical metaphysics.", content: "" },
+  { title: "Machen Still Speaks", category: "Church History", date_text: "April 30, 2026", summary: "A century after Christianity and Liberalism, Machen's diagnosis remains startlingly current. The two religions still walk our pews.", content: "" },
+  { title: "Reading Edwards on the Affections", category: "Puritans", date_text: "April 12, 2026", summary: "Jonathan Edwards on the marks of genuine religious affection — and why every believer should sit, slowly, with this Puritan classic.", content: "" },
+  { title: "The Trinity and the Modalist Temptation", category: "Doctrine", date_text: "March 27, 2026", summary: "Why oneness theology continually re-emerges, and why the historic doctrine of the Trinity is not a riddle but a refuge.", content: "" },
+  { title: "Why God Allows Evil", category: "Philosophy", date_text: "March 06, 2026", summary: "A working theodicy rooted in the sovereignty and goodness of God — and an honest reckoning with the limits of our seeing.", content: "" },
+];
+
+export const DEFAULT_SETTINGS: SiteSettings = {
+  hero_tagline: "Defending truth. Pursuing wisdom. Equipping men to think Biblically — with the rigor of the academy and the reverence of the church.",
+  scripture_quote: "Always be prepared to give an answer.",
+  scripture_reference: "1 Peter 3:15",
+  youtube_url: "https://www.youtube.com/channel/UCIDs8zPms4tbsYJKOu",
+  facebook_url: "https://www.facebook.com/marshillapologetics",
+  spotify_url: "https://open.spotify.com/show/4xnDbJFrb1gpwHfyEabZoG",
+  steeped_current_book: "Pilgrim's Progress",
+  steeped_current_author: "John Bunyan",
+  steeped_past_readings: "Mere Christianity — C. S. Lewis",
+  steeped_meeting_time: "Thursday nights at 7:00 PM EST",
+  steeped_contact_email: "tlcleon@gmail.com",
+};
+
+// Display-safe placeholders while Supabase loads
+const mkPapers    = (): Paper[]    => SEED_PAPERS.map((p, i)  => ({ id: `l${i}`, ...p }));
+const mkBooks     = (): Book[]     => SEED_BOOKS.map((b, i)   => ({ id: `l${i}`, ...b }));
+const mkEpisodes  = (): Episode[]  => SEED_EPISODES.map((e, i) => ({ id: `l${i}`, ...e }));
+const mkEvents    = (): Event[]    => SEED_EVENTS.map((e, i)  => ({ id: `l${i}`, ...e }));
+const mkPosts     = (): BlogPost[] => SEED_BLOG_POSTS.map((p, i) => ({ id: `l${i}`, ...p }));
+
+// ── Context type ──────────────────────────────────────────────────────────────
 
 type Ctx = {
-  papers: Paper[];
-  books: Book[];
-  episodes: Episode[];
-  loading: boolean;
-  dbError: string | null;
+  papers: Paper[];    books: Book[];    episodes: Episode[];
+  events: Event[];    blogPosts: BlogPost[];
+  settings: SiteSettings;
+  loading: boolean;   dbError: string | null;
+  // papers
   addPaper: (p: PaperSeed) => Promise<void>;
   deletePaper: (id: string) => Promise<void>;
   resetPapers: () => Promise<void>;
+  // books
   addBook: (b: BookSeed) => Promise<void>;
   deleteBook: (id: string) => Promise<void>;
   resetBooks: () => Promise<void>;
+  // episodes
   addEpisode: (e: EpisodeSeed) => Promise<void>;
   deleteEpisode: (id: string) => Promise<void>;
   resetEpisodes: () => Promise<void>;
+  // events
+  addEvent: (e: EventSeed) => Promise<void>;
+  updateEvent: (id: string, data: Partial<EventSeed>) => Promise<void>;
+  deleteEvent: (id: string) => Promise<void>;
+  resetEvents: () => Promise<void>;
+  // blog posts
+  addBlogPost: (p: BlogPostSeed) => Promise<void>;
+  updateBlogPost: (id: string, data: Partial<BlogPostSeed>) => Promise<void>;
+  deleteBlogPost: (id: string) => Promise<void>;
+  // settings
+  updateSetting: (key: string, value: string) => Promise<void>;
+  updateSettings: (patch: SiteSettings) => Promise<void>;
+  getSetting: (key: string, fallback?: string) => string;
+  resetSettings: () => Promise<void>;
 };
 
 const ContentContext = createContext<Ctx | null>(null);
@@ -112,34 +133,56 @@ const ContentContext = createContext<Ctx | null>(null);
 // ── Provider ──────────────────────────────────────────────────────────────────
 
 export function ContentProvider({ children }: { children: React.ReactNode }) {
-  const [papers, setPapers] = useState<Paper[]>(DISPLAY_PAPERS);
-  const [books, setBooks] = useState<Book[]>(DISPLAY_BOOKS);
-  const [episodes, setEpisodes] = useState<Episode[]>(DISPLAY_EPISODES);
-  const [loading, setLoading] = useState(true);
-  const [dbError, setDbError] = useState<string | null>(null);
+  const [papers,    setPapers]    = useState<Paper[]>(mkPapers());
+  const [books,     setBooks]     = useState<Book[]>(mkBooks());
+  const [episodes,  setEpisodes]  = useState<Episode[]>(mkEpisodes());
+  const [events,    setEvents]    = useState<Event[]>(mkEvents());
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>(mkPosts());
+  const [settings,  setSettings]  = useState<SiteSettings>(DEFAULT_SETTINGS);
+  const [loading,   setLoading]   = useState(true);
+  const [dbError,   setDbError]   = useState<string | null>(null);
 
-  useEffect(() => {
-    loadAll();
-  }, []);
+  useEffect(() => { loadAll(); }, []);
+
+  async function seedTable<T extends object>(table: string, rows: T[]): Promise<T[]> {
+    const { data } = await supabase.from(table).insert(rows).select();
+    return (data as T[]) ?? [];
+  }
 
   async function loadAll() {
-    setLoading(true);
-    setDbError(null);
+    setLoading(true); setDbError(null);
     try {
-      const [pr, br, er] = await Promise.all([
-        supabase.from("papers").select("*").order("created_at", { ascending: true }),
-        supabase.from("library").select("*").order("created_at", { ascending: true }),
-        supabase.from("episodes").select("*").order("created_at", { ascending: true }),
+      const [pr, br, er, evr, blr, stgr] = await Promise.all([
+        supabase.from("papers").select("*").order("created_at"),
+        supabase.from("library").select("*").order("created_at"),
+        supabase.from("episodes").select("*").order("created_at"),
+        supabase.from("events").select("*").order("created_at"),
+        supabase.from("blog_posts").select("*").order("created_at", { ascending: false }),
+        supabase.from("site_settings").select("key,value"),
       ]);
 
-      if (pr.error) throw new Error(`papers: ${pr.error.message}`);
-      if (br.error) throw new Error(`library: ${br.error.message}`);
-      if (er.error) throw new Error(`episodes: ${er.error.message}`);
+      if (pr.error)  throw new Error(`papers: ${pr.error.message}`);
+      if (br.error)  throw new Error(`library: ${br.error.message}`);
+      if (er.error)  throw new Error(`episodes: ${er.error.message}`);
+      if (evr.error) throw new Error(`events: ${evr.error.message}`);
+      if (blr.error) throw new Error(`blog_posts: ${blr.error.message}`);
+      if (stgr.error) throw new Error(`site_settings: ${stgr.error.message}`);
 
-      // Auto-seed empty tables on first run
-      setPapers(pr.data.length > 0 ? pr.data : await seed("papers", SEED_PAPERS));
-      setBooks(br.data.length > 0 ? br.data : await seed("library", SEED_BOOKS));
-      setEpisodes(er.data.length > 0 ? er.data : await seed("episodes", SEED_EPISODES));
+      setPapers(pr.data.length   ? pr.data  : await seedTable("papers",    SEED_PAPERS));
+      setBooks(br.data.length    ? br.data  : await seedTable("library",   SEED_BOOKS));
+      setEpisodes(er.data.length ? er.data  : await seedTable("episodes",  SEED_EPISODES));
+      setEvents(evr.data.length  ? evr.data : await seedTable("events",    SEED_EVENTS));
+      setBlogPosts(blr.data.length ? blr.data : await seedTable("blog_posts", SEED_BLOG_POSTS));
+
+      if (stgr.data.length === 0) {
+        const rows = Object.entries(DEFAULT_SETTINGS).map(([key, value]) => ({ key, value }));
+        await supabase.from("site_settings").insert(rows);
+        setSettings({ ...DEFAULT_SETTINGS });
+      } else {
+        const map = { ...DEFAULT_SETTINGS };
+        for (const row of stgr.data) map[row.key] = row.value;
+        setSettings(map);
+      }
     } catch (err: unknown) {
       setDbError(err instanceof Error ? err.message : "Database error");
     } finally {
@@ -147,74 +190,122 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  async function seed<T extends object>(table: string, rows: T[]): Promise<T[]> {
-    const { data } = await supabase.from(table).insert(rows).select();
-    return (data as T[]) ?? [];
-  }
-
-  // ── Papers ──────────────────────────────────────────────────────────────────
+  // ── Papers ────────────────────────────────────────────────────────────────
 
   const addPaper = async (p: PaperSeed) => {
     const { data, error } = await supabase.from("papers").insert([p]).select().single();
-    if (!error && data) setPapers((prev) => [...prev, data as Paper]);
+    if (!error && data) setPapers(prev => [...prev, data as Paper]);
   };
-
   const deletePaper = async (id: string) => {
     const { error } = await supabase.from("papers").delete().eq("id", id);
-    if (!error) setPapers((prev) => prev.filter((p) => p.id !== id));
+    if (!error) setPapers(prev => prev.filter(p => p.id !== id));
   };
-
   const resetPapers = async () => {
     await supabase.from("papers").delete().not("id", "is", null);
-    const fresh = await seed("papers", SEED_PAPERS);
-    setPapers(fresh as Paper[]);
+    setPapers(await seedTable("papers", SEED_PAPERS) as Paper[]);
   };
 
-  // ── Books ───────────────────────────────────────────────────────────────────
+  // ── Books ─────────────────────────────────────────────────────────────────
 
   const addBook = async (b: BookSeed) => {
     const { data, error } = await supabase.from("library").insert([b]).select().single();
-    if (!error && data) setBooks((prev) => [...prev, data as Book]);
+    if (!error && data) setBooks(prev => [...prev, data as Book]);
   };
-
   const deleteBook = async (id: string) => {
     const { error } = await supabase.from("library").delete().eq("id", id);
-    if (!error) setBooks((prev) => prev.filter((b) => b.id !== id));
+    if (!error) setBooks(prev => prev.filter(b => b.id !== id));
   };
-
   const resetBooks = async () => {
     await supabase.from("library").delete().not("id", "is", null);
-    const fresh = await seed("library", SEED_BOOKS);
-    setBooks(fresh as Book[]);
+    setBooks(await seedTable("library", SEED_BOOKS) as Book[]);
   };
 
-  // ── Episodes ─────────────────────────────────────────────────────────────────
+  // ── Episodes ──────────────────────────────────────────────────────────────
 
   const addEpisode = async (e: EpisodeSeed) => {
     const { data, error } = await supabase.from("episodes").insert([e]).select().single();
-    if (!error && data) setEpisodes((prev) => [...prev, data as Episode]);
+    if (!error && data) setEpisodes(prev => [...prev, data as Episode]);
   };
-
   const deleteEpisode = async (id: string) => {
     const { error } = await supabase.from("episodes").delete().eq("id", id);
-    if (!error) setEpisodes((prev) => prev.filter((e) => e.id !== id));
+    if (!error) setEpisodes(prev => prev.filter(e => e.id !== id));
   };
-
   const resetEpisodes = async () => {
     await supabase.from("episodes").delete().not("id", "is", null);
-    const fresh = await seed("episodes", SEED_EPISODES);
-    setEpisodes(fresh as Episode[]);
+    setEpisodes(await seedTable("episodes", SEED_EPISODES) as Episode[]);
+  };
+
+  // ── Events ────────────────────────────────────────────────────────────────
+
+  const addEvent = async (e: EventSeed) => {
+    const { data, error } = await supabase.from("events").insert([e]).select().single();
+    if (!error && data) setEvents(prev => [...prev, data as Event]);
+  };
+  const updateEvent = async (id: string, data: Partial<EventSeed>) => {
+    const { error } = await supabase.from("events").update(data).eq("id", id);
+    if (!error) setEvents(prev => prev.map(e => e.id === id ? { ...e, ...data } : e));
+  };
+  const deleteEvent = async (id: string) => {
+    const { error } = await supabase.from("events").delete().eq("id", id);
+    if (!error) setEvents(prev => prev.filter(e => e.id !== id));
+  };
+  const resetEvents = async () => {
+    await supabase.from("events").delete().not("id", "is", null);
+    setEvents(await seedTable("events", SEED_EVENTS) as Event[]);
+  };
+
+  // ── Blog posts ────────────────────────────────────────────────────────────
+
+  const addBlogPost = async (p: BlogPostSeed) => {
+    const { data, error } = await supabase.from("blog_posts").insert([p]).select().single();
+    if (!error && data) setBlogPosts(prev => [data as BlogPost, ...prev]);
+  };
+  const updateBlogPost = async (id: string, data: Partial<BlogPostSeed>) => {
+    const { error } = await supabase.from("blog_posts").update(data).eq("id", id);
+    if (!error) setBlogPosts(prev => prev.map(p => p.id === id ? { ...p, ...data } : p));
+  };
+  const deleteBlogPost = async (id: string) => {
+    const { error } = await supabase.from("blog_posts").delete().eq("id", id);
+    if (!error) setBlogPosts(prev => prev.filter(p => p.id !== id));
+  };
+
+  // ── Settings ──────────────────────────────────────────────────────────────
+
+  const updateSetting = async (key: string, value: string) => {
+    const { error } = await supabase.from("site_settings")
+      .upsert({ key, value }, { onConflict: "key" });
+    if (!error) setSettings(prev => ({ ...prev, [key]: value }));
+  };
+
+  const updateSettings = async (patch: SiteSettings) => {
+    const rows = Object.entries(patch).map(([key, value]) => ({ key, value }));
+    const { error } = await supabase.from("site_settings")
+      .upsert(rows, { onConflict: "key" });
+    if (!error) setSettings(prev => ({ ...prev, ...patch }));
+  };
+
+  const getSetting = useCallback(
+    (key: string, fallback = "") => settings[key] ?? fallback,
+    [settings]
+  );
+
+  const resetSettings = async () => {
+    await supabase.from("site_settings").delete().not("id", "is", null);
+    const rows = Object.entries(DEFAULT_SETTINGS).map(([key, value]) => ({ key, value }));
+    await supabase.from("site_settings").insert(rows);
+    setSettings({ ...DEFAULT_SETTINGS });
   };
 
   return (
-    <ContentContext.Provider
-      value={{
-        papers, books, episodes, loading, dbError,
-        addPaper, deletePaper, resetPapers,
-        addBook, deleteBook, resetBooks,
-        addEpisode, deleteEpisode, resetEpisodes,
-      }}
-    >
+    <ContentContext.Provider value={{
+      papers, books, episodes, events, blogPosts, settings, loading, dbError,
+      addPaper, deletePaper, resetPapers,
+      addBook, deleteBook, resetBooks,
+      addEpisode, deleteEpisode, resetEpisodes,
+      addEvent, updateEvent, deleteEvent, resetEvents,
+      addBlogPost, updateBlogPost, deleteBlogPost,
+      updateSetting, updateSettings, getSetting, resetSettings,
+    }}>
       {children}
     </ContentContext.Provider>
   );

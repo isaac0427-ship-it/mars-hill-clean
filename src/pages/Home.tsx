@@ -8,15 +8,10 @@ import { useContent } from "@/context/ContentContext";
 import founder from "@/assets/founder.jpg";
 import tot from "@/assets/tot.jpg";
 
-const upcomingEvents = [
-  { date: "Mar 14", title: "The Sovereignty of God in Suffering", host: "In Person · CT" },
-  { date: "Apr 11", title: "Reading Calvin's Institutes, Book I", host: "Hybrid · Zoom" },
-  { date: "May 09", title: "Machen on Liberalism, a Century Later", host: "Guest Speaker" },
-];
-
 export default function Home() {
-  const { papers } = useContent();
+  const { papers, events, getSetting } = useContent();
   const featuredPapers = papers.slice(0, 3);
+  const spotifyUrl = getSetting("spotify_url", "https://open.spotify.com/show/4xnDbJFrb1gpwHfyEabZoG");
 
   return (
     <main className="relative min-h-screen bg-background text-foreground">
@@ -124,12 +119,12 @@ export default function Home() {
               <div className="mt-6 glass-card-dark rounded-3xl p-6">
                 <p className="eyebrow text-gold">Upcoming Discussions</p>
                 <ul className="mt-4 divide-y divide-white/10">
-                  {upcomingEvents.map((e) => (
-                    <li key={e.title} className="flex items-center gap-5 py-4">
-                      <div className="w-14 shrink-0 font-display text-xl text-gold">{e.date}</div>
+                  {events.map((e) => (
+                    <li key={e.id} className="flex items-center gap-5 py-4">
+                      <div className="w-14 shrink-0 font-display text-xl text-gold">{e.date_text}</div>
                       <div className="flex-1 min-w-0">
                         <p className="truncate font-medium text-cloud">{e.title}</p>
-                        <p className="text-xs uppercase tracking-[0.18em] text-cloud/55">{e.host}</p>
+                        <p className="text-xs uppercase tracking-[0.18em] text-cloud/55">{e.location}</p>
                       </div>
                     </li>
                   ))}

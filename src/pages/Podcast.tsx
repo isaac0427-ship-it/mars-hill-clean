@@ -3,12 +3,11 @@ import { Footer } from "@/components/site/Footer";
 import { PodcastPlayer } from "@/components/site/PodcastPlayer";
 import { useContent } from "@/context/ContentContext";
 
-const SPOTIFY = "https://open.spotify.com/show/4xnDbJFrb1gpwHfyEabZoG";
-const YOUTUBE = "https://www.youtube.com/channel/UCIDs8zPms4tbsYJKOu";
-const FACEBOOK = "https://www.facebook.com/marshillapologetics";
-
 export default function PodcastPage() {
-  const { episodes } = useContent();
+  const { episodes, getSetting } = useContent();
+  const SPOTIFY  = getSetting("spotify_url",  "https://open.spotify.com/show/4xnDbJFrb1gpwHfyEabZoG");
+  const YOUTUBE  = getSetting("youtube_url",  "https://www.youtube.com/channel/UCIDs8zPms4tbsYJKOu");
+  const FACEBOOK = getSetting("facebook_url", "https://www.facebook.com/marshillapologetics");
 
   return (
     <main className="relative min-h-screen bg-background text-foreground">
