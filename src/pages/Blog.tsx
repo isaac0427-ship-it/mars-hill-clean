@@ -5,12 +5,59 @@ import { PageMeta } from "@/components/site/PageMeta";
 import { useContent } from "@/context/ContentContext";
 import { slugify } from "@/lib/utils";
 
+function PostCard({ post }: { post: ReturnType<typeof useContent>["blogPosts"][number] }) {
+  const slug = slugify(post.title);
+  return (
+    <Link to={`/blog/${slug}`} className="group block">
+      <article className="flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-gold/40">
+        {/* Image */}
+        <div className="relative aspect-[4/3] w-full overflow-hidden bg-sky/20">
+          {post.image_url ? (
+            <img
+              src={post.image_url}
+              alt={post.title}
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
+              loading="lazy"
+            />
+          ) : (
+            <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-navy/90 to-navy p-8 text-center">
+              <span className="eyebrow text-gold">{post.category}</span>
+              <p className="mt-3 font-display text-xl font-light italic text-white leading-snug">{post.title}</p>
+            </div>
+          )}
+          {/* Category badge */}
+          {post.image_url && (
+            <span className="absolute bottom-3 left-3 rounded-full bg-navy/80 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-gold backdrop-blur-sm">
+              {post.category}
+            </span>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="flex flex-1 flex-col p-6">
+          <p className="text-xs uppercase tracking-[0.22em] text-slate-400">{post.date_text}</p>
+          <h3 className="mt-2 font-display text-xl font-normal leading-snug text-navy group-hover:text-gold transition-colors">
+            {post.title}
+          </h3>
+          <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-600 line-clamp-3">
+            {post.summary}
+          </p>
+          <div className="mt-5 flex items-center gap-2 border-t border-slate-100 pt-4">
+            <span className="text-xs font-semibold uppercase tracking-[0.16em] text-navy transition group-hover:text-gold">
+              Read →
+            </span>
+          </div>
+        </div>
+      </article>
+    </Link>
+  );
+}
+
 export default function BlogPage() {
   const { blogPosts, loading } = useContent();
-  const [featured, ...rest] = blogPosts;
 
   return (
-    <main className="relative min-h-screen bg-background text-foreground">
+    <main className="min-h-screen bg-white text-foreground">
       <PageMeta
         title="Blog — Mars Hill Apologetics"
         description="Brief reflections on theology, philosophy, apologetics, and the care of the church — from the desk of John Leonetti."
@@ -18,101 +65,42 @@ export default function BlogPage() {
       />
       <Nav />
 
-      <section className="heaven-bg pt-40 pb-16 lg:pt-48">
+      {/* Header */}
+      <section className="heaven-bg pt-36 pb-12 lg:pt-44">
         <div className="mx-auto max-w-5xl px-6 text-center lg:px-10">
           <p className="eyebrow">Field Notes</p>
-          <h1 className="mt-6 font-display text-5xl font-light leading-[1.02] text-navy sm:text-6xl lg:text-7xl">
+          <h1 className="mt-5 font-display text-5xl font-light leading-[1.02] text-navy sm:text-6xl lg:text-7xl">
             The<span className="italic text-gold"> Blog.</span>
           </h1>
-          <div className="gold-rule mx-auto my-8 max-w-[8rem]" />
-          <p className="mx-auto max-w-2xl text-lg leading-relaxed text-slate-ink">
-            Brief reflections on theology, philosophy, apologetics, and the
-            care of the church — from the desk of John Leonetti.
+          <div className="gold-rule mx-auto my-7 max-w-[8rem]" />
+          <p className="mx-auto max-w-xl text-lg leading-relaxed text-slate-600">
+            Reflections on theology, apologetics, and the life of the church — from the desk of John Leonetti.
           </p>
         </div>
       </section>
 
-      {loading ? (
-        <section className="py-16">
-          <div className="mx-auto max-w-7xl space-y-6 px-6 lg:px-10">
-            {[1, 2].map((i) => <div key={i} className="h-56 animate-pulse rounded-3xl bg-sky/30" />)}
-          </div>
-        </section>
-      ) : featured ? (
-        <>
-          {/* Featured post */}
-          <section className="py-16 lg:py-20">
-            <div className="mx-auto max-w-7xl px-6 lg:px-10">
-              <Link to={`/blog/${slugify(featured.title)}`} className="block group">
-                <article className="overflow-hidden rounded-3xl border border-border bg-white shadow-soft transition hover:shadow-[var(--shadow-luxe)] hover:border-gold/40">
-                  {featured.image_url && (
-                    <div className="relative h-72 w-full overflow-hidden lg:h-96">
-                      <img src={featured.image_url} alt={featured.title}
-                        className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-navy/60 to-transparent" />
-                      <span className="absolute bottom-4 left-6 text-xs font-medium uppercase tracking-[0.24em] text-gold">
-                        {featured.category}
-                      </span>
-                    </div>
-                  )}
-                  <div className="grid gap-10 p-10 lg:grid-cols-12 lg:p-14">
-                    <div className="lg:col-span-3">
-                      <p className="eyebrow text-gold">Featured</p>
-                      <p className="mt-4 text-xs uppercase tracking-[0.22em] text-slate-ink">{featured.date_text}</p>
-                    </div>
-                    <div className="lg:col-span-9">
-                      {!featured.image_url && (
-                        <p className="text-xs uppercase tracking-[0.24em] text-gold">{featured.category}</p>
-                      )}
-                      <h2 className="mt-3 font-display text-4xl font-light leading-tight text-navy sm:text-5xl group-hover:text-gold transition-colors">{featured.title}</h2>
-                      <p className="mt-5 max-w-2xl text-lg leading-relaxed text-slate-ink">{featured.summary}</p>
-                      <span className="mt-8 inline-flex items-center gap-3 text-sm font-medium uppercase tracking-[0.18em] text-navy group-hover:text-gold transition-colors">
-                        Read article <span>→</span>
-                      </span>
-                    </div>
-                  </div>
-                </article>
-              </Link>
+      {/* Feed */}
+      <section className="py-14 lg:py-20">
+        <div className="mx-auto max-w-7xl px-6 lg:px-10">
+          {loading ? (
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <div key={i} className="aspect-[4/3] animate-pulse rounded-2xl bg-sky/30" />
+              ))}
             </div>
-          </section>
-
-          {/* Grid */}
-          {rest.length > 0 && (
-            <section className="pb-24">
-              <div className="mx-auto max-w-7xl px-6 lg:px-10">
-                <ul className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                  {rest.map((p) => (
-                    <li key={p.id}>
-                      <Link to={`/blog/${slugify(p.title)}`} className="block h-full">
-                        <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-white shadow-soft transition hover:-translate-y-1 hover:border-gold hover:shadow-[var(--shadow-luxe)]">
-                          {p.image_url ? (
-                            <div className="relative h-44 w-full overflow-hidden">
-                              <img src={p.image_url} alt={p.title} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
-                            </div>
-                          ) : (
-                            <div className="h-2 w-full bg-gradient-to-r from-gold/40 via-gold to-gold/40" />
-                          )}
-                          <div className="flex flex-1 flex-col p-7">
-                            <p className="text-[10px] uppercase tracking-[0.24em] text-gold">{p.category}</p>
-                            <h3 className="mt-3 font-display text-2xl leading-snug text-navy group-hover:text-gold transition-colors">{p.title}</h3>
-                            <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-ink">{p.summary}</p>
-                            <div className="mt-6 flex items-center justify-between border-t border-border pt-4 text-xs uppercase tracking-[0.2em] text-slate-ink">
-                              <span>{p.date_text}</span>
-                              <span className="text-navy transition group-hover:text-gold">Read →</span>
-                            </div>
-                          </div>
-                        </article>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </section>
+          ) : blogPosts.length === 0 ? (
+            <p className="py-24 text-center text-slate-500">No posts yet — check back soon.</p>
+          ) : (
+            <ul className="grid gap-7 sm:grid-cols-2 lg:grid-cols-3">
+              {blogPosts.map((post) => (
+                <li key={post.id}>
+                  <PostCard post={post} />
+                </li>
+              ))}
+            </ul>
           )}
-        </>
-      ) : (
-        <section className="py-24 text-center text-slate-ink">No posts yet.</section>
-      )}
+        </div>
+      </section>
 
       <Footer />
     </main>

@@ -15,7 +15,7 @@ export default function PodcastPage() {
     : "4xnDbJFrb1gpwHfyEabZoG";
 
   return (
-    <main className="relative min-h-screen bg-background text-foreground">
+    <main className="min-h-screen bg-white text-foreground">
       <PageMeta
         title="Podcast — Reformed Reference — Mars Hill Apologetics"
         description="A weekly study where the wisdom of the great Reformed theologians echoes through the ages — Calvin, Luther, Warfield, and Machen."
@@ -23,38 +23,36 @@ export default function PodcastPage() {
       />
       <Nav />
 
-      {/* Hero + Spotify embed */}
-      <section className="relative overflow-hidden navy-bg pt-40 pb-24 text-cloud lg:pt-48 lg:pb-32">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_80%_10%,color-mix(in_oklab,var(--sky)_28%,transparent)_0%,transparent_55%)]" />
-        <div className="relative mx-auto max-w-7xl px-6 lg:px-10">
+      {/* Hero */}
+      <section className="heaven-bg pt-36 pb-14 lg:pt-44">
+        <div className="mx-auto max-w-7xl px-6 lg:px-10">
           <div className="grid gap-12 lg:grid-cols-12 lg:items-start">
             <div className="lg:col-span-4">
               <p className="eyebrow text-gold">Now Streaming</p>
-              <h1 className="mt-6 font-display text-5xl font-light leading-[1.02] sm:text-6xl lg:text-7xl">
+              <h1 className="mt-5 font-display text-5xl font-light leading-[1.02] text-navy sm:text-6xl lg:text-7xl">
                 Reformed
                 <br />
                 <span className="italic text-gold">Reference</span>
                 <br />
                 Podcast.
               </h1>
-              <div className="gold-rule my-8 max-w-[6rem]" />
-              <p className="text-pretty text-lg leading-relaxed text-cloud/80">
+              <div className="gold-rule my-7 max-w-[5rem]" />
+              <p className="text-lg leading-relaxed text-slate-700">
                 A weekly study where the wisdom of the great Reformed theologians
                 echoes through the ages — from Calvin and Luther to Warfield and
-                Machen — drawing their profound insights into the conversations
-                and convictions of today.
+                Machen.
               </p>
-              <div className="mt-10 flex flex-wrap gap-3">
+              <div className="mt-8 flex flex-wrap gap-3">
                 <a href={SPOTIFY} target="_blank" rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full bg-cloud px-6 py-3.5 text-xs font-semibold uppercase tracking-[0.2em] text-navy transition hover:bg-gold">
+                  className="inline-flex items-center gap-2 rounded-full bg-navy px-6 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-white transition hover:bg-gold hover:text-navy">
                   Spotify
                 </a>
                 <a href={YOUTUBE} target="_blank" rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full border border-cloud/30 px-6 py-3.5 text-xs font-semibold uppercase tracking-[0.2em] text-cloud transition hover:border-gold hover:text-gold">
+                  className="inline-flex items-center gap-2 rounded-full border border-navy px-6 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-navy transition hover:bg-navy hover:text-white">
                   YouTube
                 </a>
                 <a href={FACEBOOK} target="_blank" rel="noreferrer"
-                  className="inline-flex items-center gap-2 rounded-full border border-cloud/30 px-6 py-3.5 text-xs font-semibold uppercase tracking-[0.2em] text-cloud transition hover:border-gold hover:text-gold">
+                  className="inline-flex items-center gap-2 rounded-full border border-navy px-6 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-navy transition hover:bg-navy hover:text-white">
                   Facebook
                 </a>
               </div>
@@ -68,28 +66,27 @@ export default function PodcastPage() {
       </section>
 
       {/* Episode list */}
-      <section className="relative navy-bg pb-32 text-cloud lg:pb-40">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_15%_80%,color-mix(in_oklab,var(--sky)_12%,transparent)_0%,transparent_60%)]" />
-        <div className="relative mx-auto max-w-4xl px-6 lg:px-10">
-          <p className="eyebrow text-gold">Episodes</p>
-          <ul className="mt-6 divide-y divide-white/10 rounded-3xl border border-white/10 bg-white/[0.03] backdrop-blur">
+      <section className="bg-white py-16 lg:py-20">
+        <div className="mx-auto max-w-4xl px-6 lg:px-10">
+          <p className="eyebrow">Episodes</p>
+          <ul className="mt-6 divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white shadow-sm">
             {episodes.map((e) => (
               <li key={e.id}
-                className="group flex items-center gap-6 px-6 py-5 transition hover:bg-white/[0.04]">
+                className="group flex items-center gap-6 px-6 py-5 transition hover:bg-sky/10">
                 <span className="w-8 shrink-0 font-display text-xl text-gold">{e.number}</span>
-                <p className="flex-1 text-cloud">{e.title}</p>
-                <span className="text-xs uppercase tracking-[0.2em] text-cloud/55">{e.length}</span>
+                <p className="flex-1 font-medium text-navy">{e.title}</p>
+                <span className="text-xs uppercase tracking-[0.18em] text-slate-500">{e.length}</span>
                 <a href={SPOTIFY} target="_blank" rel="noreferrer"
-                  className="text-cloud/40 transition group-hover:translate-x-1 group-hover:text-gold">
+                  className="text-slate-400 transition group-hover:translate-x-1 group-hover:text-gold">
                   →
                 </a>
               </li>
             ))}
           </ul>
 
-          <div className="mt-24 border-t border-white/10 pt-16 text-center">
-            <p className="eyebrow text-gold">B.B. Warfield</p>
-            <blockquote className="mx-auto mt-6 max-w-3xl font-display text-2xl font-light italic leading-snug sm:text-3xl">
+          <div className="mt-16 border-t border-slate-200 pt-12 text-center">
+            <p className="eyebrow">B.B. Warfield</p>
+            <blockquote className="mx-auto mt-5 max-w-3xl font-display text-2xl font-light italic leading-snug text-navy sm:text-3xl">
               "It is the distinction of Christianity that it has come into the
               world clothed with the mission to reason its way to its dominion."
             </blockquote>

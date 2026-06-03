@@ -13,13 +13,14 @@ export default function BlogPostPage() {
 
   if (loading) {
     return (
-      <main className="relative min-h-screen bg-background text-foreground">
+      <main className="min-h-screen bg-white">
         <Nav />
         <div className="mx-auto max-w-3xl px-6 pt-40 pb-24 lg:px-10">
-          <div className="space-y-4">
-            <div className="h-8 w-32 animate-pulse rounded-full bg-sky/30" />
-            <div className="h-12 w-full animate-pulse rounded-2xl bg-sky/30" />
-            <div className="h-64 w-full animate-pulse rounded-2xl bg-sky/30" />
+          <div className="space-y-4 animate-pulse">
+            <div className="h-5 w-24 rounded-full bg-sky/30" />
+            <div className="h-12 w-full rounded-xl bg-sky/30" />
+            <div className="h-4 w-48 rounded-full bg-sky/20" />
+            <div className="h-64 w-full rounded-2xl bg-sky/20" />
           </div>
         </div>
         <Footer />
@@ -29,13 +30,13 @@ export default function BlogPostPage() {
 
   if (!post) {
     return (
-      <main className="relative min-h-screen bg-background text-foreground">
+      <main className="min-h-screen bg-white">
         <PageMeta title="Post Not Found" description="This article could not be found." />
         <Nav />
         <div className="mx-auto max-w-3xl px-6 pt-40 pb-24 text-center lg:px-10">
           <h1 className="font-display text-4xl text-navy">Post not found.</h1>
-          <p className="mt-4 text-slate-ink">This article may have been moved or deleted.</p>
-          <Link to="/blog" className="mt-8 inline-flex items-center gap-3 rounded-full bg-navy px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.2em] text-cloud transition hover:bg-gold hover:text-navy">
+          <p className="mt-4 text-slate-600">This article may have been moved or deleted.</p>
+          <Link to="/blog" className="mt-8 inline-flex items-center gap-3 rounded-full bg-navy px-7 py-3.5 text-xs font-semibold uppercase tracking-[0.2em] text-white transition hover:bg-gold hover:text-navy">
             ← Back to Blog
           </Link>
         </div>
@@ -45,69 +46,61 @@ export default function BlogPostPage() {
   }
 
   return (
-    <main className="relative min-h-screen bg-background text-foreground">
-      <PageMeta
-        title={post.title}
-        description={post.summary}
-        path={`/blog/${slug}`}
-      />
+    <main className="min-h-screen bg-white">
+      <PageMeta title={post.title} description={post.summary} path={`/blog/${slug}`} />
       <Nav />
 
-      {/* Hero */}
-      <section className="heaven-bg pt-40 pb-12 lg:pt-48">
+      {/* Header */}
+      <section className="heaven-bg pt-36 pb-10 lg:pt-44">
         <div className="mx-auto max-w-3xl px-6 lg:px-10">
-          <Link to="/blog" className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-slate-ink hover:text-navy">
+          <Link to="/blog" className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 hover:text-navy transition">
             ← Blog
           </Link>
-          <div className="mt-8">
+          <div className="mt-7">
             <p className="eyebrow text-gold">{post.category}</p>
-            <h1 className="mt-4 font-display text-4xl font-light leading-[1.02] text-navy sm:text-5xl lg:text-6xl">
+            <h1 className="mt-3 font-display text-4xl font-light leading-[1.02] text-navy sm:text-5xl">
               {post.title}
             </h1>
-            <p className="mt-4 text-sm uppercase tracking-[0.22em] text-slate-ink">{post.date_text}</p>
+            <p className="mt-4 text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">{post.date_text}</p>
           </div>
         </div>
       </section>
 
       {/* Cover image */}
       {post.image_url && (
-        <div className="mx-auto max-w-3xl px-6 py-8 lg:px-10">
+        <div className="mx-auto max-w-3xl px-6 py-6 lg:px-10">
           <img
             src={post.image_url}
             alt={post.title}
-            className="w-full rounded-3xl object-cover shadow-[var(--shadow-luxe)]"
-            style={{ maxHeight: 480 }}
+            className="w-full rounded-2xl object-cover shadow-lg"
+            style={{ maxHeight: 460 }}
           />
         </div>
       )}
 
-      {/* Article body */}
-      <article className="mx-auto max-w-3xl px-6 pb-24 lg:px-10">
-        {/* Summary / lede */}
-        <p className="mt-8 text-xl leading-relaxed text-slate-ink font-light">
+      {/* Article */}
+      <article className="mx-auto max-w-3xl px-6 pb-20 lg:px-10">
+        <p className="mt-6 text-xl font-light leading-relaxed text-slate-700">
           {post.summary}
         </p>
 
-        {/* Gold divider */}
-        <div className="gold-rule my-10 max-w-[6rem]" />
+        <div className="gold-rule my-8 max-w-[5rem]" />
 
-        {/* Full content */}
         {post.content ? (
-          <div className="prose-article space-y-6 text-base leading-relaxed text-slate-ink">
+          <div className="space-y-6 text-[17px] leading-[1.75] text-slate-700">
             {post.content.split("\n\n").map((para, i) => (
               <p key={i}>{para}</p>
             ))}
           </div>
         ) : (
-          <p className="text-slate-ink/60 italic">Full article coming soon.</p>
+          <p className="italic text-slate-400">Full article coming soon.</p>
         )}
 
-        {/* Footer nav */}
-        <div className="mt-16 flex items-center justify-between border-t border-border pt-10">
-          <Link to="/blog" className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-slate-ink hover:text-navy">
+        <div className="mt-14 flex items-center justify-between border-t border-slate-200 pt-8">
+          <Link to="/blog" className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-500 hover:text-navy transition">
             ← All posts
           </Link>
-          <Link to="/contact" className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.22em] text-navy hover:text-gold">
+          <Link to="/contact" className="text-xs font-semibold uppercase tracking-[0.2em] text-navy hover:text-gold transition">
             Write to us →
           </Link>
         </div>

@@ -61,11 +61,11 @@
 :root {
   --radius: 0.75rem;
 
-  --navy: oklch(0.22 0.045 250);
-  --sky: oklch(0.95 0.025 240);
-  --cloud: oklch(0.99 0.005 240);
-  --gold: oklch(0.74 0.09 80);
-  --slate-ink: oklch(0.28 0.025 255);   /* darkened for contrast */
+  --navy: oklch(0.20 0.050 250);
+  --sky: oklch(0.95 0.020 240);
+  --cloud: oklch(0.99 0.003 240);
+  --gold: oklch(0.72 0.10 78);
+  --slate-ink: oklch(0.16 0.020 255);   /* near-black for WCAG AA contrast */
 
   --background: var(--cloud);
   --foreground: var(--navy);
