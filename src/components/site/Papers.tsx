@@ -1,0 +1,124 @@
+import { useMemo, useState } from "react";
+
+type Paper = {
+  title: string;
+  category: "Doctrine" | "World Religions" | "Culture" | "History" | "Philosophy";
+  year: string;
+  summary: string;
+};
+
+const papers: Paper[] = [
+  { title: "The Arian Controversy", category: "History", year: "MMXX", summary: "On the fourth-century battle over the divinity of Christ and the Nicene response." },
+  { title: "The Bible vs. the Qur'an", category: "World Religions", year: "MMXXI", summary: "A textual and theological comparison of two competing scriptural canons." },
+  { title: "Critical Race Theory", category: "Culture", year: "MMXXII", summary: "A Reformed evaluation of CRT's underlying anthropology and worldview." },
+  { title: "Islam — A Two-Page Summary", category: "World Religions", year: "MMXX", summary: "A concise primer on Islamic origins, theology, and key apologetic concerns." },
+  { title: "The Kalam Cosmological Argument", category: "Philosophy", year: "MMXXII", summary: "On the classical theistic argument from the universe's beginning." },
+  { title: "Matthew 25 — The Sheep & the Goats", category: "Doctrine", year: "MMXXI", summary: "Exegesis of the great judgment and the identity of 'the least of these.'" },
+  { title: "Radical Two-Kingdom Theology", category: "Doctrine", year: "MMXXII", summary: "An examination and critique of the R2K project within Reformed circles." },
+  { title: "Tacitus, The Annals 15:44", category: "History", year: "MMXX", summary: "Roman testimony to Christ and the early Christian movement." },
+  { title: "The United Pentecostal Church", category: "Doctrine", year: "MMXXI", summary: "Modalism, oneness theology, and the historic doctrine of the Trinity." },
+  { title: "Why God Allows Evil", category: "Philosophy", year: "MMXXIII", summary: "A theodicy rooted in the sovereignty and goodness of God." },
+];
+
+const categories = ["All", "Doctrine", "World Religions", "Culture", "History", "Philosophy"] as const;
+
+export function Papers() {
+  const [query, setQuery] = useState("");
+  const [cat, setCat] = useState<(typeof categories)[number]>("All");
+
+  const filtered = useMemo(() => {
+    return papers.filter((p) => {
+      const matchesCat = cat === "All" || p.category === cat;
+      const q = query.trim().toLowerCase();
+      const matchesQ =
+        !q || p.title.toLowerCase().includes(q) || p.summary.toLowerCase().includes(q);
+      return matchesCat && matchesQ;
+    });
+  }, [cat, query]);
+
+  return (
+    <section id="papers" className="relative heaven-bg py-32 lg:py-40">
+      <div className="mx-auto max-w-7xl px-6 lg:px-10">
+        <div className="flex flex-col items-start justify-between gap-10 lg:flex-row lg:items-end">
+          <div className="max-w-2xl">
+            <p className="eyebrow">The Library</p>
+            <h2 className="mt-5 font-display text-4xl font-light leading-[1.05] text-navy sm:text-5xl lg:text-6xl">
+              Seminary
+              <span className="italic text-gold"> Papers.</span>
+            </h2>
+            <p className="mt-6 text-lg text-slate-ink">
+              A working archive of graduate-level theological writing — open to
+              the church, freely given for study, prayer, and conversation.
+            </p>
+          </div>
+
+          <div className="flex w-full flex-col gap-3 sm:flex-row lg:w-auto">
+            <div className="relative">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Search the archive…"
+                className="w-full rounded-full border border-border bg-white/80 px-6 py-3.5 text-sm text-navy placeholder:text-slate-ink/60 focus:border-gold focus:outline-none lg:w-80"
+              />
+            </div>
+          </div>
+        </div>
+
+        <div className="mt-10 flex flex-wrap gap-2">
+          {categories.map((c) => (
+            <button
+              key={c}
+              onClick={() => setCat(c)}
+              className={`rounded-full border px-5 py-2 text-xs font-medium uppercase tracking-[0.18em] transition ${
+                cat === c
+                  ? "border-navy bg-navy text-cloud"
+                  : "border-border bg-white/60 text-slate-ink hover:border-gold hover:text-navy"
+              }`}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+
+        <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {filtered.map((p) => (
+            <article
+              key={p.title}
+              className="group relative flex flex-col overflow-hidden rounded-2xl border border-border bg-white p-7 shadow-soft transition hover:-translate-y-1 hover:border-gold/40 hover:shadow-[var(--shadow-luxe)]"
+            >
+              <div className="flex items-start justify-between">
+                <span className="rounded-full bg-sky/70 px-3 py-1 text-[10px] font-medium uppercase tracking-[0.2em] text-navy">
+                  {p.category}
+                </span>
+                <span className="font-display text-xs tracking-widest text-slate-ink/60">
+                  {p.year}
+                </span>
+              </div>
+              <h3 className="mt-6 font-display text-2xl leading-tight text-navy">
+                {p.title}
+              </h3>
+              <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-ink">
+                {p.summary}
+              </p>
+              <div className="mt-8 flex items-center justify-between border-t border-border pt-5">
+                <span className="text-[10px] font-medium uppercase tracking-[0.22em] text-slate-ink">
+                  PDF · A4
+                </span>
+                <span className="inline-flex items-center gap-2 text-xs font-medium uppercase tracking-[0.18em] text-navy transition group-hover:text-gold">
+                  Read paper
+                  <span className="transition-transform group-hover:translate-x-1">→</span>
+                </span>
+              </div>
+            </article>
+          ))}
+        </div>
+
+        {filtered.length === 0 && (
+          <p className="mt-16 text-center text-sm text-slate-ink">
+            No papers match that search.
+          </p>
+        )}
+      </div>
+    </section>
+  );
+}
