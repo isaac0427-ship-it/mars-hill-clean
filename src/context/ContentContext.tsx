@@ -101,7 +101,7 @@ type Ctx = {
   settings: SiteSettings;
   loading: boolean;   dbError: string | null;
   // papers
-  addPaper:    (p: PaperSeed)                           => Promise<void>;
+  addPaper:    (p: PaperSeed)                           => Promise<Paper | null>;
   updatePaper: (id: string, data: Partial<PaperSeed>)   => Promise<void>;
   deletePaper: (id: string)                             => Promise<void>;
   resetPapers: ()                                       => Promise<void>;
@@ -164,72 +164,81 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
     setLoading(true);
     setDbError(null);
 
-    // Run all queries in parallel; collect results without throwing
-    const [pr, br, er, evr, blr, stgr] = await Promise.all([
-      supabase.from("papers").select("*").order("created_at"),
-      supabase.from("library").select("*").order("created_at"),
-      supabase.from("episodes").select("*").order("created_at"),
-      supabase.from("events").select("*").order("created_at"),
-      supabase.from("blog_posts").select("*").order("created_at", { ascending: false }),
-      supabase.from("site_settings").select("key,value"),
-    ]);
+    try {
+      // Run all queries in parallel; collect results without throwing
+      const [pr, br, er, evr, blr, stgr] = await Promise.all([
+        supabase.from("papers").select("*").order("created_at"),
+        supabase.from("library").select("*").order("created_at"),
+        supabase.from("episodes").select("*").order("created_at"),
+        supabase.from("events").select("*").order("created_at"),
+        supabase.from("blog_posts").select("*").order("created_at", { ascending: false }),
+        supabase.from("site_settings").select("key,value"),
+      ]);
 
-    // Collect any errors into a summary message but don't abort loading
-    const errors: string[] = [];
-    if (pr.error)   errors.push(`papers: ${pr.error.message}`);
-    if (br.error)   errors.push(`library: ${br.error.message}`);
-    if (er.error)   errors.push(`episodes: ${er.error.message}`);
-    if (evr.error)  errors.push(`events: ${evr.error.message}`);
-    if (blr.error)  errors.push(`blog_posts: ${blr.error.message}`);
-    if (stgr.error) errors.push(`site_settings: ${stgr.error.message}`);
-    if (errors.length) setDbError(errors.join(" | "));
+      // Collect any errors into a summary message but don't abort loading
+      const errors: string[] = [];
+      if (pr.error)   errors.push(`papers: ${pr.error.message}`);
+      if (br.error)   errors.push(`library: ${br.error.message}`);
+      if (er.error)   errors.push(`episodes: ${er.error.message}`);
+      if (evr.error)  errors.push(`events: ${evr.error.message}`);
+      if (blr.error)  errors.push(`blog_posts: ${blr.error.message}`);
+      if (stgr.error) errors.push(`site_settings: ${stgr.error.message}`);
+      if (errors.length) setDbError(errors.join(" | "));
 
-    // Papers — use DB data, or seed if empty, or keep local fallback on error
-    if (!pr.error) {
-      setPapers(pr.data?.length ? (pr.data as Paper[]) : (await seedTable("papers", SEED_PAPERS)) as unknown as Paper[]);
-    }
-
-    // Books / Library
-    if (!br.error) {
-      setBooks(br.data?.length ? (br.data as Book[]) : (await seedTable("library", SEED_BOOKS)) as unknown as Book[]);
-    }
-
-    // Episodes
-    if (!er.error) {
-      setEpisodes(er.data?.length ? (er.data as Episode[]) : (await seedTable("episodes", SEED_EPISODES)) as unknown as Episode[]);
-    }
-
-    // Events
-    if (!evr.error) {
-      setEvents(evr.data?.length ? (evr.data as Event[]) : (await seedTable("events", SEED_EVENTS)) as unknown as Event[]);
-    }
-
-    // Blog posts
-    if (!blr.error) {
-      setBlogPosts(blr.data?.length ? (blr.data as BlogPost[]) : (await seedTable("blog_posts", SEED_BLOG_POSTS)) as unknown as BlogPost[]);
-    }
-
-    // Settings
-    if (!stgr.error) {
-      if (!stgr.data?.length) {
-        const rows = Object.entries(DEFAULT_SETTINGS).map(([key, value]) => ({ key, value }));
-        await supabase.from("site_settings").insert(rows);
-        setSettings({ ...DEFAULT_SETTINGS });
-      } else {
-        const map = { ...DEFAULT_SETTINGS };
-        for (const row of stgr.data) map[row.key] = row.value;
-        setSettings(map);
+      // Papers — use DB data, or seed if empty, or keep local fallback on error
+      if (!pr.error) {
+        setPapers(pr.data?.length ? (pr.data as Paper[]) : (await seedTable("papers", SEED_PAPERS)) as unknown as Paper[]);
       }
-    }
 
-    setLoading(false);
+      // Books / Library
+      if (!br.error) {
+        setBooks(br.data?.length ? (br.data as Book[]) : (await seedTable("library", SEED_BOOKS)) as unknown as Book[]);
+      }
+
+      // Episodes
+      if (!er.error) {
+        setEpisodes(er.data?.length ? (er.data as Episode[]) : (await seedTable("episodes", SEED_EPISODES)) as unknown as Episode[]);
+      }
+
+      // Events
+      if (!evr.error) {
+        setEvents(evr.data?.length ? (evr.data as Event[]) : (await seedTable("events", SEED_EVENTS)) as unknown as Event[]);
+      }
+
+      // Blog posts
+      if (!blr.error) {
+        setBlogPosts(blr.data?.length ? (blr.data as BlogPost[]) : (await seedTable("blog_posts", SEED_BLOG_POSTS)) as unknown as BlogPost[]);
+      }
+
+      // Settings
+      if (!stgr.error) {
+        if (!stgr.data?.length) {
+          const rows = Object.entries(DEFAULT_SETTINGS).map(([key, value]) => ({ key, value }));
+          await supabase.from("site_settings").insert(rows);
+          setSettings({ ...DEFAULT_SETTINGS });
+        } else {
+          const map = { ...DEFAULT_SETTINGS };
+          for (const row of stgr.data) map[row.key] = row.value;
+          setSettings(map);
+        }
+      }
+    } catch (err: unknown) {
+      setDbError(err instanceof Error ? err.message : "Unexpected error loading data");
+    } finally {
+      // ALWAYS unlock loading — no tab should ever be stuck in skeleton state
+      setLoading(false);
+    }
   }
 
   // ── Papers ────────────────────────────────────────────────────────────────
 
-  const addPaper = async (p: PaperSeed) => {
+  const addPaper = async (p: PaperSeed): Promise<Paper | null> => {
     const { data, error } = await supabase.from("papers").insert([p]).select().single();
-    if (!error && data) setPapers(prev => [...prev, data as Paper]);
+    if (!error && data) {
+      setPapers(prev => [...prev, data as Paper]);
+      return data as Paper;
+    }
+    return null;
   };
   const updatePaper = async (id: string, data: Partial<PaperSeed>) => {
     const { error } = await supabase.from("papers").update(data).eq("id", id);

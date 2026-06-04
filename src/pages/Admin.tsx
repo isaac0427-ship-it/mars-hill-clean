@@ -132,15 +132,23 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
 
 // ── PDF upload helper ─────────────────────────────────────────────────────────
 
-async function uploadPaperPdf(file: File, paperId: string): Promise<string | null> {
-  // Stable path per paper so re-uploading replaces the previous file
-  const safeName = paperId.replace(/[^a-z0-9]/gi, "-").toLowerCase();
+type UploadResult = { url: string; errorMsg: null } | { url: null; errorMsg: string };
+
+async function uploadPaperPdf(file: File, paperId: string): Promise<UploadResult> {
+  // Sanitise the paper ID for use as a storage path component
+  const safeName = paperId.replace(/[^a-z0-9]/gi, "-").replace(/^-+|-+$/g, "").toLowerCase() || "paper";
   const path = `${safeName}.pdf`;
+
   const { error } = await supabase.storage
     .from("papers")
     .upload(path, file, { contentType: "application/pdf", cacheControl: "3600", upsert: true });
-  if (error) { console.error("PDF upload:", error.message); return null; }
-  return supabase.storage.from("papers").getPublicUrl(path).data.publicUrl;
+
+  if (error) {
+    return { url: null, errorMsg: error.message };
+  }
+
+  const { data } = supabase.storage.from("papers").getPublicUrl(path);
+  return { url: data.publicUrl, errorMsg: null };
 }
 
 // Fuzzy-match a PDF filename to a paper title (returns 0–1 score)
@@ -165,10 +173,19 @@ function PaperUploadBtn({ paper, onDone }: { paper: Paper; onDone: (url: string)
   const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]; if (!file) return;
     setUploading(true);
-    const url = await uploadPaperPdf(file, paper.id);
+    const result = await uploadPaperPdf(file, paper.id);
     setUploading(false);
-    if (url) onDone(url);
-    else alert("Upload failed — check that the 'papers' storage bucket exists and is public.");
+    if (result.url) {
+      onDone(result.url);
+    } else {
+      alert(
+        `PDF upload failed.\n\nError: ${result.errorMsg}\n\n` +
+        `To fix this:\n` +
+        `1. Go to Supabase → Storage → Create a bucket named "papers" (set to Public)\n` +
+        `2. In the bucket Policies, add a policy allowing INSERT for the anon role\n` +
+        `   (or use "Give insert access to everyone" template)`
+      );
+    }
     if (inputRef.current) inputRef.current.value = "";
   };
 
@@ -181,7 +198,7 @@ function PaperUploadBtn({ paper, onDone }: { paper: Paper; onDone: (url: string)
 }
 
 // Bulk upload section
-function BulkUpload({ papers, onPdfSaved }: { papers: Paper[]; onPdfSaved: (id: string, url: string) => void }) {
+function BulkUpload({ papers, onPdfSaved }: { papers: Paper[]; onPdfSaved: (id: string, url: string) => Promise<void> }) {
   type Match = { file: File; paper: Paper; score: number };
   const [matches, setMatches] = useState<Match[]>([]);
   const [overrides, setOverrides] = useState<Record<number, string>>({}); // index → paperId override
@@ -217,18 +234,20 @@ function BulkUpload({ papers, onPdfSaved }: { papers: Paper[]; onPdfSaved: (id: 
     const lines: string[] = [];
     for (let i = 0; i < matches.length; i++) {
       const target = getTargetPaper(i);
-      lines.push(`Uploading ${matches[i].file.name}…`);
+      lines[i] = `Uploading "${matches[i].file.name}"…`;
       setProgress([...lines]);
-      const url = await uploadPaperPdf(matches[i].file, target.id);
-      if (url) {
-        onPdfSaved(target.id, url);
+
+      const result = await uploadPaperPdf(matches[i].file, target.id);
+      if (result.url) {
+        await onPdfSaved(target.id, result.url);
         lines[i] = `✓ ${target.title}`;
       } else {
-        lines[i] = `✗ ${target.title} — upload failed`;
+        lines[i] = `✗ ${target.title} — ${result.errorMsg}`;
       }
       setProgress([...lines]);
     }
     setUploading(false);
+    // Keep progress visible; clear file list so user can select different files
     setMatches([]);
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
@@ -314,8 +333,8 @@ function PapersManager() {
     if (!form.title || !form.summary) return;
     setBusy(true);
 
-    // Add paper (no PDF yet) — this pushes to local state via ContentContext
-    await addPaper({
+    // Insert paper and get back the created record with its real DB id
+    const newPaper = await addPaper({
       title: form.title,
       category: form.category,
       year: form.year || new Date().getFullYear().toString(),
@@ -323,19 +342,28 @@ function PapersManager() {
       pdf_link: null,
     });
 
-    // Find the newly added paper by matching title (it'll be the last one with this title)
-    const { data: rows } = await supabase.from("papers").select("id").eq("title", form.title).order("created_at", { ascending: false }).limit(1);
-    const newId = rows?.[0]?.id;
+    if (!newPaper) {
+      setBusy(false);
+      setFlash("Failed to save paper — check Supabase connection");
+      return;
+    }
 
-    if (newId && pdfFile) {
-      const url = await uploadPaperPdf(pdfFile, newId);
-      if (url) await updatePaper(newId, { pdf_link: url });
+    // Upload PDF if provided, using the real DB id
+    if (pdfFile) {
+      const result = await uploadPaperPdf(pdfFile, newPaper.id);
+      if (result.url) {
+        await updatePaper(newPaper.id, { pdf_link: result.url });
+        setFlash("Added with PDF ✓");
+      } else {
+        setFlash(`Paper added — PDF upload failed: ${result.errorMsg}`);
+      }
+    } else {
+      setFlash("Added ✓");
     }
 
     setForm(blank);
     setPdfFile(null);
     if (addFileRef.current) addFileRef.current.value = "";
-    setFlash(pdfFile ? "Added with PDF ✓" : "Added ✓");
     setBusy(false);
   };
 
@@ -349,9 +377,16 @@ function PapersManager() {
     setEditId(null); setFlash("Saved ✓"); setBusy(false);
   };
 
-  const handlePdfSaved = async (paperId: string, url: string) => {
+  const handlePdfSaved = async (paperId: string, url: string): Promise<void> => {
+    // updatePaper both writes to DB and updates local state
     await updatePaper(paperId, { pdf_link: url });
-    setFlash("PDF uploaded ✓");
+    // If paperId is a local fake ID (starts with "local_"), the DB write silently matched 0 rows.
+    // The change is visible in this session but won't persist after reload.
+    if (paperId.startsWith("local_")) {
+      setFlash("PDF saved (page reload needed to persist — Supabase tables may be empty)");
+    } else {
+      setFlash("PDF uploaded ✓");
+    }
   };
 
   return (
@@ -415,7 +450,9 @@ function PapersManager() {
             loading={loading}
             onReset={async()=>{ if(confirm("Reset to original 10 papers? PDFs in storage will not be deleted.")){ setBusy(true); await resetPapers(); setFlash("Reset ✓"); setBusy(false); }}}
           />
-          {loading ? <LoadingList /> : (
+          {loading ? <LoadingList /> : papers.length === 0 ? (
+            <p className="mt-6 text-sm text-slate-ink/60">No papers yet. Add one using the form on the left.</p>
+          ) : (
             <ul className="mt-4 divide-y divide-border">
               {papers.map((p: Paper) => (
                 <li key={p.id} className="py-4">
@@ -521,7 +558,9 @@ function LibraryManager() {
         </div>
         <div>
           <SectionHead title="Library" count={books.length} loading={loading} onReset={async()=>{if(confirm("Reset to original 12?")){ setBusy(true); await resetBooks(); setFlash("Reset ✓"); setBusy(false); }}} />
-          {loading ? <LoadingList /> : (
+          {loading ? <LoadingList /> : books.length === 0 ? (
+            <p className="mt-6 text-sm text-slate-ink/60">No books yet. Add one using the form on the left.</p>
+          ) : (
             <ul className="mt-4 divide-y divide-border">
               {books.map((b: Book)=>(
                 <li key={b.id} className="py-4">
@@ -601,7 +640,9 @@ function PodcastManager() {
         </div>
         <div>
           <SectionHead title="Episodes" count={episodes.length} loading={loading} onReset={async()=>{if(confirm("Reset to original 4?")){ setBusy(true); await resetEpisodes(); setFlash("Reset ✓"); setBusy(false); }}} />
-          {loading ? <LoadingList /> : (
+          {loading ? <LoadingList /> : episodes.length === 0 ? (
+            <p className="mt-6 text-sm text-slate-ink/60">No episodes yet. Add one using the form on the left.</p>
+          ) : (
             <ul className="mt-4 divide-y divide-border">
               {episodes.map((ep: Episode)=>(
                 <li key={ep.id} className="py-4">
@@ -682,7 +723,9 @@ function EventsManager() {
         </div>
         <div>
           <SectionHead title="Events" count={events.length} loading={loading} onReset={async()=>{if(confirm("Reset to original 3?")){ setBusy(true); await resetEvents(); setFlash("Reset ✓"); setBusy(false); }}} />
-          {loading ? <LoadingList /> : (
+          {loading ? <LoadingList /> : events.length === 0 ? (
+            <p className="mt-6 text-sm text-slate-ink/60">No events yet. Add one using the form on the left.</p>
+          ) : (
             <ul className="mt-4 divide-y divide-border">
               {events.map((ev: Event)=>(
                 <li key={ev.id} className="py-4">
@@ -800,7 +843,9 @@ function BlogManager() {
 
       <div>
         <SectionHead title="Posts" count={blogPosts.length} loading={loading} />
-        {loading ? <LoadingList /> : (
+        {loading ? <LoadingList /> : blogPosts.length === 0 ? (
+          <p className="mt-6 text-sm text-slate-ink/60">No posts yet. Add one using the form above.</p>
+        ) : (
           <ul className="mt-4 divide-y divide-border">
             {blogPosts.map((p: BlogPost)=>(
               <li key={p.id} className="py-5">
