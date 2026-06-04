@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import {
@@ -130,76 +130,328 @@ function LoginScreen({ onLogin }: { onLogin: () => void }) {
   );
 }
 
+// ── PDF upload helper ─────────────────────────────────────────────────────────
+
+async function uploadPaperPdf(file: File, paperId: string): Promise<string | null> {
+  // Stable path per paper so re-uploading replaces the previous file
+  const safeName = paperId.replace(/[^a-z0-9]/gi, "-").toLowerCase();
+  const path = `${safeName}.pdf`;
+  const { error } = await supabase.storage
+    .from("papers")
+    .upload(path, file, { contentType: "application/pdf", cacheControl: "3600", upsert: true });
+  if (error) { console.error("PDF upload:", error.message); return null; }
+  return supabase.storage.from("papers").getPublicUrl(path).data.publicUrl;
+}
+
+// Fuzzy-match a PDF filename to a paper title (returns 0–1 score)
+function matchScore(filename: string, title: string): number {
+  const words = (s: string) =>
+    s.toLowerCase().replace(/[^a-z0-9\s]/g, " ").split(/\s+/).filter(w => w.length > 2);
+  const fw = new Set(words(filename));
+  const tw = words(title);
+  if (!fw.size || !tw.length) return 0;
+  return tw.filter(w => fw.has(w)).length / tw.length;
+}
+
 // ── Papers manager ─────────────────────────────────────────────────────────────
 
 const PAPER_CATS: PaperCategory[] = ["Doctrine","World Religions","Culture","History","Philosophy"];
 
-function PapersManager() {
-  const { papers, addPaper, updatePaper, deletePaper, resetPapers, loading, dbError } = useContent();
-  const blank = { title:"", category:"Doctrine" as PaperCategory, year:"", summary:"", pdf_link:"" };
-  const [form, setForm] = useState(blank);
-  const [editId, setEditId] = useState<string|null>(null);
-  const [editForm, setEditForm] = useState(blank);
-  const [busy, setBusy] = useState(false);
-  const [flash, setFlash] = useFlash();
+// Inline upload for a single paper already in the list
+function PaperUploadBtn({ paper, onDone }: { paper: Paper; onDone: (url: string) => void }) {
+  const [uploading, setUploading] = useState(false);
+  const inputRef = React.useRef<HTMLInputElement>(null);
 
-  const submit = async (e: React.FormEvent) => {
-    e.preventDefault(); if (!form.title||!form.summary) return;
-    setBusy(true);
-    await addPaper({ title:form.title, category:form.category, year:form.year||new Date().getFullYear().toString(), summary:form.summary, pdf_link:form.pdf_link||null });
-    setForm(blank); setFlash("Added ✓"); setBusy(false);
-  };
-  const startEdit = (p: Paper) => { setEditId(p.id); setEditForm({ title:p.title, category:p.category, year:p.year, summary:p.summary, pdf_link:p.pdf_link||"" }); };
-  const saveEdit = async () => {
-    if (!editId) return; setBusy(true);
-    await updatePaper(editId, { title:editForm.title, category:editForm.category, year:editForm.year, summary:editForm.summary, pdf_link:editForm.pdf_link||null });
-    setEditId(null); setFlash("Saved ✓"); setBusy(false);
+  const handleFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]; if (!file) return;
+    setUploading(true);
+    const url = await uploadPaperPdf(file, paper.id);
+    setUploading(false);
+    if (url) onDone(url);
+    else alert("Upload failed — check that the 'papers' storage bucket exists and is public.");
+    if (inputRef.current) inputRef.current.value = "";
   };
 
   return (
-    <div className="space-y-8">
+    <label className={`${btnSecondary} cursor-pointer`} title={paper.pdf_link ? "Replace PDF" : "Upload PDF"}>
+      {uploading ? "Uploading…" : paper.pdf_link ? "Replace PDF" : "Upload PDF"}
+      <input ref={inputRef} type="file" accept="application/pdf" className="sr-only" onChange={handleFile} disabled={uploading} />
+    </label>
+  );
+}
+
+// Bulk upload section
+function BulkUpload({ papers, onPdfSaved }: { papers: Paper[]; onPdfSaved: (id: string, url: string) => void }) {
+  type Match = { file: File; paper: Paper; score: number };
+  const [matches, setMatches] = useState<Match[]>([]);
+  const [overrides, setOverrides] = useState<Record<number, string>>({}); // index → paperId override
+  const [uploading, setUploading] = useState(false);
+  const [progress, setProgress] = useState<string[]>([]);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files ?? []);
+    if (!files.length) return;
+    const matched: Match[] = files.map(file => {
+      const base = file.name.replace(/\.pdf$/i, "");
+      let best: Paper = papers[0]; let bestScore = 0;
+      for (const p of papers) {
+        const s = matchScore(base, p.title);
+        if (s > bestScore) { bestScore = s; best = p; }
+      }
+      return { file, paper: best, score: bestScore };
+    });
+    setMatches(matched);
+    setOverrides({});
+    setProgress([]);
+  };
+
+  const getTargetPaper = (idx: number) => {
+    const override = overrides[idx];
+    return override ? papers.find(p => p.id === override) ?? matches[idx].paper : matches[idx].paper;
+  };
+
+  const uploadAll = async () => {
+    if (!matches.length) return;
+    setUploading(true); setProgress([]);
+    const lines: string[] = [];
+    for (let i = 0; i < matches.length; i++) {
+      const target = getTargetPaper(i);
+      lines.push(`Uploading ${matches[i].file.name}…`);
+      setProgress([...lines]);
+      const url = await uploadPaperPdf(matches[i].file, target.id);
+      if (url) {
+        onPdfSaved(target.id, url);
+        lines[i] = `✓ ${target.title}`;
+      } else {
+        lines[i] = `✗ ${target.title} — upload failed`;
+      }
+      setProgress([...lines]);
+    }
+    setUploading(false);
+    setMatches([]);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  return (
+    <div className="rounded-3xl border border-border bg-sky/10 p-8">
+      <h2 className="font-display text-2xl text-navy">Bulk PDF Upload</h2>
+      <p className="mt-2 text-sm text-slate-ink">
+        Select multiple PDF files at once. Each file is automatically matched to a paper by filename.
+        Review the matches below, adjust any that are wrong, then click <strong>Upload All</strong>.
+      </p>
+
+      <div className="mt-6">
+        <label className={`${btnPrimary} cursor-pointer`}>
+          Choose PDF Files
+          <input ref={fileInputRef} type="file" accept="application/pdf" multiple className="sr-only" onChange={handleFiles} disabled={uploading} />
+        </label>
+        <p className="mt-2 text-xs text-slate-ink/70">Files are stored in the <code className="rounded bg-sky/50 px-1.5 py-0.5 font-mono">papers</code> Supabase Storage bucket.</p>
+      </div>
+
+      {matches.length > 0 && (
+        <div className="mt-6 space-y-3">
+          <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-ink">{matches.length} file{matches.length !== 1 ? "s" : ""} — review matches</p>
+          <ul className="divide-y divide-border rounded-2xl border border-border bg-white">
+            {matches.map((m, i) => {
+              const target = getTargetPaper(i);
+              return (
+                <li key={i} className="grid grid-cols-[1fr_auto_1fr] items-center gap-3 px-5 py-3 text-sm">
+                  {/* Filename */}
+                  <span className="truncate font-mono text-xs text-slate-ink">{m.file.name}</span>
+                  <span className="text-slate-ink/40">→</span>
+                  {/* Target paper selector */}
+                  <select
+                    value={target.id}
+                    onChange={e => setOverrides(o => ({ ...o, [i]: e.target.value }))}
+                    className="rounded-full border border-border bg-cloud px-3 py-1.5 text-xs text-navy focus:border-gold focus:outline-none"
+                    disabled={uploading}
+                  >
+                    {papers.map(p => (
+                      <option key={p.id} value={p.id}>{p.title}</option>
+                    ))}
+                  </select>
+                </li>
+              );
+            })}
+          </ul>
+          <Row>
+            <button onClick={uploadAll} disabled={uploading} className={btnPrimary}>
+              {uploading ? "Uploading…" : `Upload All ${matches.length} PDF${matches.length !== 1 ? "s" : ""}`}
+            </button>
+            <button onClick={() => { setMatches([]); if (fileInputRef.current) fileInputRef.current.value = ""; }} className={btnGhost} disabled={uploading}>
+              Clear
+            </button>
+          </Row>
+        </div>
+      )}
+
+      {progress.length > 0 && (
+        <ul className="mt-4 space-y-1 rounded-2xl border border-border bg-white p-4 text-xs font-mono">
+          {progress.map((line, i) => (
+            <li key={i} className={line.startsWith("✓") ? "text-green-600" : line.startsWith("✗") ? "text-red-500" : "text-slate-ink"}>{line}</li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function PapersManager() {
+  const { papers, addPaper, updatePaper, deletePaper, resetPapers, loading, dbError } = useContent();
+  const blank = { title:"", category:"Doctrine" as PaperCategory, year:"", summary:"" };
+  const [form, setForm] = useState(blank);
+  const [pdfFile, setPdfFile] = useState<File|null>(null);
+  const [editId, setEditId] = useState<string|null>(null);
+  const [editForm, setEditForm] = useState({ ...blank, pdf_link:"" });
+  const [busy, setBusy] = useState(false);
+  const [flash, setFlash] = useFlash();
+  const addFileRef = React.useRef<HTMLInputElement>(null);
+
+  // Add paper then immediately upload PDF if one was chosen
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!form.title || !form.summary) return;
+    setBusy(true);
+
+    // Add paper (no PDF yet) — this pushes to local state via ContentContext
+    await addPaper({
+      title: form.title,
+      category: form.category,
+      year: form.year || new Date().getFullYear().toString(),
+      summary: form.summary,
+      pdf_link: null,
+    });
+
+    // Find the newly added paper by matching title (it'll be the last one with this title)
+    const { data: rows } = await supabase.from("papers").select("id").eq("title", form.title).order("created_at", { ascending: false }).limit(1);
+    const newId = rows?.[0]?.id;
+
+    if (newId && pdfFile) {
+      const url = await uploadPaperPdf(pdfFile, newId);
+      if (url) await updatePaper(newId, { pdf_link: url });
+    }
+
+    setForm(blank);
+    setPdfFile(null);
+    if (addFileRef.current) addFileRef.current.value = "";
+    setFlash(pdfFile ? "Added with PDF ✓" : "Added ✓");
+    setBusy(false);
+  };
+
+  const startEdit = (p: Paper) => {
+    setEditId(p.id);
+    setEditForm({ title:p.title, category:p.category, year:p.year, summary:p.summary, pdf_link:p.pdf_link||"" });
+  };
+  const saveEdit = async () => {
+    if (!editId) return; setBusy(true);
+    await updatePaper(editId, { title:editForm.title, category:editForm.category, year:editForm.year, summary:editForm.summary });
+    setEditId(null); setFlash("Saved ✓"); setBusy(false);
+  };
+
+  const handlePdfSaved = async (paperId: string, url: string) => {
+    await updatePaper(paperId, { pdf_link: url });
+    setFlash("PDF uploaded ✓");
+  };
+
+  return (
+    <div className="space-y-10">
       {dbError && <DbError msg={dbError} />}
+
+      {/* Storage setup note */}
+      <div className="rounded-2xl border border-gold/30 bg-amber-50 px-5 py-4 text-sm text-navy">
+        <strong>Setup required:</strong> In Supabase → Storage, create a public bucket named <code className="rounded bg-amber-100 px-1.5 font-mono text-xs">papers</code>.
+        Then add an RLS policy: <em>Storage → papers bucket → Policies → New Policy → "Allow public reads"</em> and another for <em>"Allow authenticated uploads"</em>.
+      </div>
+
       <div className="grid gap-10 lg:grid-cols-2">
+        {/* ── Add paper ── */}
         <div>
           <h2 className="font-display text-2xl text-navy">Add a Paper</h2>
-          <form onSubmit={submit} className="mt-6 space-y-5">
-            <Field label="Title *"><input required value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))} className={inputCls} placeholder="The Arian Controversy" /></Field>
+          <form onSubmit={handleSubmit} className="mt-6 space-y-5">
+            <Field label="Title *">
+              <input required value={form.title} onChange={e=>setForm(f=>({...f,title:e.target.value}))} className={inputCls} placeholder="The Arian Controversy" />
+            </Field>
             <div className="grid gap-4 sm:grid-cols-2">
-              <Field label="Category *"><select value={form.category} onChange={e=>setForm(f=>({...f,category:e.target.value as PaperCategory}))} className={inputCls}>{PAPER_CATS.map(c=><option key={c}>{c}</option>)}</select></Field>
-              <Field label="Year (e.g. MMXXIV)"><input value={form.year} onChange={e=>setForm(f=>({...f,year:e.target.value}))} className={inputCls} placeholder="MMXXIV" /></Field>
+              <Field label="Category *">
+                <select value={form.category} onChange={e=>setForm(f=>({...f,category:e.target.value as PaperCategory}))} className={inputCls}>
+                  {PAPER_CATS.map(c=><option key={c}>{c}</option>)}
+                </select>
+              </Field>
+              <Field label="Year (e.g. MMXXIV)">
+                <input value={form.year} onChange={e=>setForm(f=>({...f,year:e.target.value}))} className={inputCls} placeholder="MMXXIV" />
+              </Field>
             </div>
-            <Field label="Summary *"><textarea required value={form.summary} onChange={e=>setForm(f=>({...f,summary:e.target.value}))} rows={3} className={areaCls} placeholder="Brief description…" /></Field>
-            <Field label="PDF Link"><input type="url" value={form.pdf_link} onChange={e=>setForm(f=>({...f,pdf_link:e.target.value}))} className={inputCls} placeholder="https://…" /></Field>
-            <Row><button type="submit" disabled={busy||loading} className={btnPrimary}>{busy?"Saving…":"Add Paper"}</button><Flash msg={flash} /></Row>
+            <Field label="Summary *">
+              <textarea required value={form.summary} onChange={e=>setForm(f=>({...f,summary:e.target.value}))} rows={3} className={areaCls} placeholder="Brief description…" />
+            </Field>
+            <Field label="PDF File (optional — you can upload later)">
+              <input
+                ref={addFileRef}
+                type="file"
+                accept="application/pdf"
+                onChange={e => setPdfFile(e.target.files?.[0] ?? null)}
+                className="mt-2 w-full cursor-pointer rounded-2xl border border-border bg-cloud px-4 py-2.5 text-sm text-slate-ink
+                  file:mr-4 file:cursor-pointer file:rounded-full file:border-0 file:bg-navy file:px-4 file:py-1
+                  file:text-xs file:font-semibold file:uppercase file:tracking-[0.2em] file:text-cloud
+                  hover:file:bg-gold hover:file:text-navy"
+              />
+              {pdfFile && <p className="mt-1 text-xs text-slate-ink">Selected: {pdfFile.name}</p>}
+            </Field>
+            <Row>
+              <button type="submit" disabled={busy||loading} className={btnPrimary}>
+                {busy ? "Saving…" : pdfFile ? "Add Paper & Upload PDF" : "Add Paper"}
+              </button>
+              <Flash msg={flash} />
+            </Row>
           </form>
         </div>
+
+        {/* ── Paper list with per-paper upload ── */}
         <div>
-          <SectionHead title="Papers" count={papers.length} loading={loading} onReset={async()=>{if(confirm("Reset to original 10?")){ setBusy(true); await resetPapers(); setFlash("Reset ✓"); setBusy(false); }}} />
+          <SectionHead
+            title="Papers"
+            count={papers.length}
+            loading={loading}
+            onReset={async()=>{ if(confirm("Reset to original 10 papers? PDFs in storage will not be deleted.")){ setBusy(true); await resetPapers(); setFlash("Reset ✓"); setBusy(false); }}}
+          />
           {loading ? <LoadingList /> : (
             <ul className="mt-4 divide-y divide-border">
-              {papers.map((p: Paper)=>(
+              {papers.map((p: Paper) => (
                 <li key={p.id} className="py-4">
-                  {editId===p.id ? (
+                  {editId === p.id ? (
                     <div className="space-y-3 rounded-2xl border border-gold/30 bg-sky/20 p-4">
                       <input value={editForm.title} onChange={e=>setEditForm(f=>({...f,title:e.target.value}))} className={inputCls} placeholder="Title" />
                       <div className="grid gap-3 sm:grid-cols-2">
-                        <select value={editForm.category} onChange={e=>setEditForm(f=>({...f,category:e.target.value as PaperCategory}))} className={inputCls}>{PAPER_CATS.map(c=><option key={c}>{c}</option>)}</select>
+                        <select value={editForm.category} onChange={e=>setEditForm(f=>({...f,category:e.target.value as PaperCategory}))} className={inputCls}>
+                          {PAPER_CATS.map(c=><option key={c}>{c}</option>)}
+                        </select>
                         <input value={editForm.year} onChange={e=>setEditForm(f=>({...f,year:e.target.value}))} className={inputCls} placeholder="MMXXIV" />
                       </div>
                       <textarea value={editForm.summary} onChange={e=>setEditForm(f=>({...f,summary:e.target.value}))} rows={3} className={areaCls} placeholder="Summary" />
-                      <input type="url" value={editForm.pdf_link} onChange={e=>setEditForm(f=>({...f,pdf_link:e.target.value}))} className={inputCls} placeholder="https://…" />
-                      <Row><button onClick={saveEdit} disabled={busy} className={btnPrimary}>Save</button><button onClick={()=>setEditId(null)} className={btnGhost}>Cancel</button></Row>
+                      <Row>
+                        <button onClick={saveEdit} disabled={busy} className={btnPrimary}>Save</button>
+                        <button onClick={()=>setEditId(null)} className={btnGhost}>Cancel</button>
+                      </Row>
                     </div>
                   ) : (
-                    <div className="flex items-start gap-4">
+                    <div className="flex items-start gap-3">
                       <div className="min-w-0 flex-1">
                         <p className="truncate font-medium text-navy">{p.title}</p>
                         <p className="text-xs uppercase tracking-[0.18em] text-gold">{p.category} · {p.year}</p>
-                        {p.pdf_link && <a href={p.pdf_link} target="_blank" rel="noreferrer" className="block truncate text-xs text-slate-ink hover:text-navy">{p.pdf_link}</a>}
+                        {p.pdf_link ? (
+                          <a href={p.pdf_link} target="_blank" rel="noreferrer"
+                            className="mt-0.5 block truncate text-[10px] font-medium uppercase tracking-[0.14em] text-green-600 hover:text-green-800">
+                            ✓ PDF uploaded
+                          </a>
+                        ) : (
+                          <p className="mt-0.5 text-[10px] font-medium uppercase tracking-[0.14em] text-slate-400">No PDF yet</p>
+                        )}
                       </div>
-                      <div className="flex shrink-0 gap-3">
+                      <div className="flex shrink-0 flex-wrap gap-2">
+                        <PaperUploadBtn paper={p} onDone={(url) => handlePdfSaved(p.id, url)} />
                         <button onClick={()=>startEdit(p)} className={btnSecondary}>Edit</button>
-                        <button onClick={async()=>{if(confirm(`Delete "${p.title}"?`)){ setBusy(true); await deletePaper(p.id); setFlash("Deleted ✓"); setBusy(false); }}} disabled={busy} className={btnDanger}>Delete</button>
+                        <button onClick={async()=>{ if(confirm(`Delete "${p.title}"?`)){ setBusy(true); await deletePaper(p.id); setFlash("Deleted ✓"); setBusy(false); }}} disabled={busy} className={btnDanger}>Delete</button>
                       </div>
                     </div>
                   )}
@@ -209,6 +461,11 @@ function PapersManager() {
           )}
         </div>
       </div>
+
+      {/* ── Bulk upload ── */}
+      {!loading && papers.length > 0 && (
+        <BulkUpload papers={papers} onPdfSaved={handlePdfSaved} />
+      )}
     </div>
   );
 }

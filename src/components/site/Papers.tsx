@@ -3,6 +3,18 @@ import { useContent } from "@/context/ContentContext";
 
 const categories = ["All", "Doctrine", "World Religions", "Culture", "History", "Philosophy"] as const;
 
+/** For Supabase Storage URLs, append ?download=true to force browser download instead of inline view. */
+function toDownloadUrl(url: string): string {
+  try {
+    if (url.includes(".supabase.co")) {
+      const u = new URL(url);
+      u.searchParams.set("download", "true");
+      return u.toString();
+    }
+  } catch { /* invalid URL — fall through */ }
+  return url;
+}
+
 export function Papers() {
   const { papers, loading } = useContent();
   const [query, setQuery] = useState("");
@@ -20,6 +32,7 @@ export function Papers() {
   return (
     <section id="papers" className="bg-white py-20 lg:py-28">
       <div className="mx-auto max-w-7xl px-6 lg:px-10">
+        {/* Header row */}
         <div className="flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-end">
           <div className="max-w-2xl">
             <p className="eyebrow">The Archive</p>
@@ -41,6 +54,7 @@ export function Papers() {
           </div>
         </div>
 
+        {/* Category filter */}
         <div className="mt-8 flex flex-wrap gap-2">
           {categories.map((c) => (
             <button
@@ -57,54 +71,57 @@ export function Papers() {
           ))}
         </div>
 
+        {/* Loading skeletons */}
         {loading && (
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {[1,2,3,4,5,6].map(i => (
-              <div key={i} className="h-56 animate-pulse rounded-2xl bg-sky/20" />
+            {[1, 2, 3, 4, 5, 6].map(i => (
+              <div key={i} className="h-64 animate-pulse rounded-2xl bg-sky/20" />
             ))}
           </div>
         )}
 
+        {/* Paper cards */}
         {!loading && (
           <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {filtered.map((p) => {
-              const card = (
-                <article className="group relative flex h-full flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-7 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-gold/40 hover:shadow-lg">
-                  <div className="flex items-start justify-between">
-                    <span className="rounded-full bg-sky/60 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-navy">
-                      {p.category}
-                    </span>
-                    <span className="font-display text-xs text-slate-400">{p.year}</span>
-                  </div>
-                  <h3 className="mt-5 font-display text-xl leading-tight text-navy">{p.title}</h3>
-                  <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-600">{p.summary}</p>
-                  <div className="mt-7 flex items-center justify-between border-t border-slate-100 pt-4">
-                    <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">PDF · A4</span>
-                    {p.pdf_link ? (
-                      <span className="text-xs font-semibold uppercase tracking-[0.16em] text-navy transition group-hover:text-gold">
-                        Read paper →
-                      </span>
-                    ) : (
-                      <span className="text-xs uppercase tracking-[0.16em] text-slate-400 italic">
-                        PDF not yet available
-                      </span>
-                    )}
-                  </div>
-                </article>
-              );
+            {filtered.map((p) => (
+              <article
+                key={p.id}
+                className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-7 shadow-sm transition duration-300 hover:-translate-y-1 hover:border-gold/40 hover:shadow-lg"
+              >
+                {/* Category + Year */}
+                <div className="flex items-start justify-between">
+                  <span className="rounded-full bg-sky/60 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-navy">
+                    {p.category}
+                  </span>
+                  <span className="font-display text-xs text-slate-400">{p.year}</span>
+                </div>
 
-              return (
-                <div key={p.id} className="h-full">
+                {/* Title + summary */}
+                <h3 className="mt-5 font-display text-xl leading-tight text-navy">{p.title}</h3>
+                <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-600">{p.summary}</p>
+
+                {/* Download button */}
+                <div className="mt-7 border-t border-slate-100 pt-5">
                   {p.pdf_link ? (
-                    <a href={p.pdf_link} target="_blank" rel="noreferrer" className="block h-full">
-                      {card}
+                    <a
+                      href={toDownloadUrl(p.pdf_link)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center gap-2 rounded-full bg-navy px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-gold hover:text-navy"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Download icon */}
+                      <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                      </svg>
+                      Download PDF
                     </a>
                   ) : (
-                    card
+                    <span className="text-xs italic text-slate-400">PDF coming soon</span>
                   )}
                 </div>
-              );
-            })}
+              </article>
+            ))}
           </div>
         )}
 
