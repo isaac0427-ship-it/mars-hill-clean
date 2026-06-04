@@ -14,48 +14,16 @@ export type Event    = { id: string; title: string; date_text: string; location:
 export type BlogPost = { id: string; title: string; category: string; date_text: string; summary: string; content: string; image_url?: string | null; };
 export type SiteSettings = Record<string, string>;
 
+// Seed types (no id — used only for inserts)
 type PaperSeed    = Omit<Paper, "id">;
 type BookSeed     = Omit<Book, "id">;
 type EpisodeSeed  = Omit<Episode, "id">;
 type EventSeed    = Omit<Event, "id">;
 type BlogPostSeed = Omit<BlogPost, "id">;
 
-// ── Seed / default data ───────────────────────────────────────────────────────
-
-export const SEED_PAPERS: PaperSeed[] = [
-  { title: "The Arian Controversy",              category: "History",       year: "MMXX",   summary: "On the fourth-century battle over the divinity of Christ and the Nicene response.",                   pdf_link: null },
-  { title: "The Bible vs. the Qur'an",           category: "World Religions",year: "MMXXI",  summary: "A textual and theological comparison of two competing scriptural canons.",                            pdf_link: null },
-  { title: "Critical Race Theory",               category: "Culture",       year: "MMXXII", summary: "A Reformed evaluation of CRT's underlying anthropology and worldview.",                                 pdf_link: null },
-  { title: "Islam — A Two-Page Summary",         category: "World Religions",year: "MMXX",   summary: "A concise primer on Islamic origins, theology, and key apologetic concerns.",                          pdf_link: null },
-  { title: "The Kalam Cosmological Argument",    category: "Philosophy",    year: "MMXXII", summary: "On the classical theistic argument from the universe's beginning.",                                     pdf_link: null },
-  { title: "Matthew 25 — The Sheep & the Goats", category: "Doctrine",     year: "MMXXI",  summary: "Exegesis of the great judgment and the identity of 'the least of these.'",                             pdf_link: null },
-  { title: "Radical Two-Kingdom Theology",       category: "Doctrine",      year: "MMXXII", summary: "An examination and critique of the R2K project within Reformed circles.",                               pdf_link: null },
-  { title: "Tacitus, The Annals 15:44",          category: "History",       year: "MMXX",   summary: "Roman testimony to Christ and the early Christian movement.",                                           pdf_link: null },
-  { title: "The United Pentecostal Church",      category: "Doctrine",      year: "MMXXI",  summary: "Modalism, oneness theology, and the historic doctrine of the Trinity.",                                 pdf_link: null },
-  { title: "Why God Allows Evil",                category: "Philosophy",    year: "MMXXIII",summary: "A theodicy rooted in the sovereignty and goodness of God.",                                              pdf_link: null },
-];
-
-export const SEED_BOOKS: BookSeed[] = [
-  { title: "Institutes of the Christian Religion", author: "John Calvin",       era: "Reformation", year: "1559", note: "The cornerstone of Reformed systematic theology." },
-  { title: "The Bondage of the Will",              author: "Martin Luther",     era: "Reformation", year: "1525", note: "The hinge of the Reformation — grace, will, and Scripture." },
-  { title: "On the Incarnation",                   author: "Athanasius",        era: "Patristic",   year: "318",  note: "The classic defense of the divinity of the Son." },
-  { title: "Confessions",                          author: "Augustine",         era: "Patristic",   year: "400",  note: "The soul laid bare before a sovereign God." },
-  { title: "The Religious Affections",             author: "Jonathan Edwards",  era: "Puritan",     year: "1746", note: "On the marks of true gracious affection in the soul." },
-  { title: "Pilgrim's Progress",                   author: "John Bunyan",       era: "Puritan",     year: "1678", note: "An allegory of the Christian life — unrivaled." },
-  { title: "The Mortification of Sin",             author: "John Owen",         era: "Puritan",     year: "1656", note: "Be killing sin or it will be killing you." },
-  { title: "Christianity and Liberalism",          author: "J. Gresham Machen", era: "Modern",      year: "1923", note: "A bracing defense of historic Christian faith." },
-  { title: "The Inspiration and Authority of the Bible", author: "B. B. Warfield", era: "Modern",  year: "1948", note: "Princeton's defense of Scripture." },
-  { title: "Mere Christianity",                    author: "C. S. Lewis",       era: "Apologetics", year: "1952", note: "Accessible Christian apologetics at its finest." },
-  { title: "The Reason for God",                   author: "Timothy Keller",    era: "Apologetics", year: "2008", note: "Apologetics for the skeptical and the seeking." },
-  { title: "Reasonable Faith",                     author: "William Lane Craig", era: "Apologetics", year: "2008", note: "The Kalam argument and a rigorous case for theism." },
-];
-
-export const SEED_EPISODES: EpisodeSeed[] = [
-  { number: "01", title: "Calvin on the Knowledge of God",        length: "42 min" },
-  { number: "02", title: "B.B. Warfield on Inspiration",          length: "38 min" },
-  { number: "03", title: "Luther's Bondage of the Will",          length: "51 min" },
-  { number: "04", title: "Machen — Christianity and Liberalism",  length: "47 min" },
-];
+// ── Seed data — events and blog posts only ────────────────────────────────────
+// Papers, books, and episodes have NO hardcoded fallback — they come from
+// Supabase only. An empty Supabase result renders an empty-state message.
 
 export const SEED_EVENTS: EventSeed[] = [
   { title: "The Sovereignty of God in Suffering",  date_text: "Mar 14", location: "In Person · CT",  type: "in-person" },
@@ -64,12 +32,12 @@ export const SEED_EVENTS: EventSeed[] = [
 ];
 
 export const SEED_BLOG_POSTS: BlogPostSeed[] = [
-  { title: "On the Knowledge of God",               category: "Theology",      date_text: "May 28, 2026",   summary: "Calvin opens the Institutes with a hinge: we cannot know ourselves without knowing God, nor God without knowing ourselves. A meditation.",                                                          content: "", image_url: null },
-  { title: "The Kalam Argument, Revisited",          category: "Apologetics",   date_text: "May 14, 2026",   summary: "A short defense of the second premise — that the universe began to exist — drawing on contemporary cosmology and classical metaphysics.",                                                        content: "", image_url: null },
-  { title: "Machen Still Speaks",                    category: "Church History", date_text: "April 30, 2026", summary: "A century after Christianity and Liberalism, Machen's diagnosis remains startlingly current. The two religions still walk our pews.",                                                          content: "", image_url: null },
-  { title: "Reading Edwards on the Affections",      category: "Puritans",       date_text: "April 12, 2026", summary: "Jonathan Edwards on the marks of genuine religious affection — and why every believer should sit, slowly, with this Puritan classic.",                                                         content: "", image_url: null },
-  { title: "The Trinity and the Modalist Temptation",category: "Doctrine",       date_text: "March 27, 2026", summary: "Why oneness theology continually re-emerges, and why the historic doctrine of the Trinity is not a riddle but a refuge.",                                                                       content: "", image_url: null },
-  { title: "Why God Allows Evil",                    category: "Philosophy",     date_text: "March 06, 2026", summary: "A working theodicy rooted in the sovereignty and goodness of God — and an honest reckoning with the limits of our seeing.",                                                                   content: "", image_url: null },
+  { title: "On the Knowledge of God",                category: "Theology",       date_text: "May 28, 2026",   summary: "Calvin opens the Institutes with a hinge: we cannot know ourselves without knowing God, nor God without knowing ourselves. A meditation.",                                content: "", image_url: null },
+  { title: "The Kalam Argument, Revisited",           category: "Apologetics",    date_text: "May 14, 2026",   summary: "A short defense of the second premise — that the universe began to exist — drawing on contemporary cosmology and classical metaphysics.",                            content: "", image_url: null },
+  { title: "Machen Still Speaks",                     category: "Church History",  date_text: "April 30, 2026", summary: "A century after Christianity and Liberalism, Machen's diagnosis remains startlingly current. The two religions still walk our pews.",                               content: "", image_url: null },
+  { title: "Reading Edwards on the Affections",       category: "Puritans",        date_text: "April 12, 2026", summary: "Jonathan Edwards on the marks of genuine religious affection — and why every believer should sit, slowly, with this Puritan classic.",                              content: "", image_url: null },
+  { title: "The Trinity and the Modalist Temptation", category: "Doctrine",        date_text: "March 27, 2026", summary: "Why oneness theology continually re-emerges, and why the historic doctrine of the Trinity is not a riddle but a refuge.",                                          content: "", image_url: null },
+  { title: "Why God Allows Evil",                     category: "Philosophy",      date_text: "March 06, 2026", summary: "A working theodicy rooted in the sovereignty and goodness of God — and an honest reckoning with the limits of our seeing.",                                      content: "", image_url: null },
 ];
 
 export const DEFAULT_SETTINGS: SiteSettings = {
@@ -85,13 +53,6 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   steeped_meeting_time:    "Thursday nights at 7:00 PM EST",
   steeped_contact_email:   "tlcleon@gmail.com",
 };
-
-// Stable local placeholders used while Supabase loads OR as fallback when DB is unreachable
-const mkPapers    = (): Paper[]    => SEED_PAPERS.map((p, i)    => ({ id: `local_${i}`, ...p }));
-const mkBooks     = (): Book[]     => SEED_BOOKS.map((b, i)     => ({ id: `local_${i}`, ...b }));
-const mkEpisodes  = (): Episode[]  => SEED_EPISODES.map((e, i)  => ({ id: `local_${i}`, ...e }));
-const mkEvents    = (): Event[]    => SEED_EVENTS.map((e, i)    => ({ id: `local_${i}`, ...e }));
-const mkPosts     = (): BlogPost[] => SEED_BLOG_POSTS.map((p, i) => ({ id: `local_${i}`, ...p }));
 
 // ── Context type ──────────────────────────────────────────────────────────────
 
@@ -136,27 +97,25 @@ const ContentContext = createContext<Ctx | null>(null);
 // ── Provider ──────────────────────────────────────────────────────────────────
 
 export function ContentProvider({ children }: { children: React.ReactNode }) {
-  const [papers,    setPapers]    = useState<Paper[]>(mkPapers());
-  const [books,     setBooks]     = useState<Book[]>(mkBooks());
-  const [episodes,  setEpisodes]  = useState<Episode[]>(mkEpisodes());
-  const [events,    setEvents]    = useState<Event[]>(mkEvents());
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>(mkPosts());
+  // Papers, books, and episodes start empty — populated from Supabase only
+  const [papers,    setPapers]    = useState<Paper[]>([]);
+  const [books,     setBooks]     = useState<Book[]>([]);
+  const [episodes,  setEpisodes]  = useState<Episode[]>([]);
+  // Events and blog posts seed on first visit if Supabase is empty
+  const [events,    setEvents]    = useState<Event[]>([]);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
   const [settings,  setSettings]  = useState<SiteSettings>(DEFAULT_SETTINGS);
   const [loading,   setLoading]   = useState(true);
   const [dbError,   setDbError]   = useState<string | null>(null);
 
   useEffect(() => { loadAll(); }, []);
 
-  /**
-   * Try to INSERT seed rows; if the DB blocks it (RLS, missing table, etc.),
-   * return the local seed array with stable fake IDs so the UI always has data.
-   */
+  /** Seed helper — only used for events and blog posts. */
   async function seedTable<T extends object>(table: string, rows: T[]): Promise<T[]> {
     try {
       const { data, error } = await supabase.from(table).insert(rows).select();
       if (!error && data?.length) return data as T[];
     } catch { /* ignore */ }
-    // DB blocked — return local copies with synthetic IDs
     return rows.map((r, i) => ({ ...r, id: `local_${i}` })) as unknown as T[];
   }
 
@@ -165,7 +124,6 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
     setDbError(null);
 
     try {
-      // Run all queries in parallel; collect results without throwing
       const [pr, br, er, evr, blr, stgr] = await Promise.all([
         supabase.from("papers").select("*").order("created_at"),
         supabase.from("library").select("*").order("created_at"),
@@ -175,7 +133,6 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
         supabase.from("site_settings").select("key,value"),
       ]);
 
-      // Collect any errors into a summary message but don't abort loading
       const errors: string[] = [];
       if (pr.error)   errors.push(`papers: ${pr.error.message}`);
       if (br.error)   errors.push(`library: ${br.error.message}`);
@@ -185,29 +142,27 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
       if (stgr.error) errors.push(`site_settings: ${stgr.error.message}`);
       if (errors.length) setDbError(errors.join(" | "));
 
-      // Papers — use DB data, or seed if empty, or keep local fallback on error
-      if (!pr.error) {
-        setPapers(pr.data?.length ? (pr.data as Paper[]) : (await seedTable("papers", SEED_PAPERS)) as unknown as Paper[]);
-      }
+      // Papers — Supabase only; empty Supabase result → empty array (no seed)
+      if (!pr.error) setPapers((pr.data ?? []) as Paper[]);
 
-      // Books / Library
-      if (!br.error) {
-        setBooks(br.data?.length ? (br.data as Book[]) : (await seedTable("library", SEED_BOOKS)) as unknown as Book[]);
-      }
+      // Books / Library — Supabase only
+      if (!br.error) setBooks((br.data ?? []) as Book[]);
 
-      // Episodes
-      if (!er.error) {
-        setEpisodes(er.data?.length ? (er.data as Episode[]) : (await seedTable("episodes", SEED_EPISODES)) as unknown as Episode[]);
-      }
+      // Episodes — Supabase only
+      if (!er.error) setEpisodes((er.data ?? []) as Episode[]);
 
-      // Events
+      // Events — seed on first visit if table is empty
       if (!evr.error) {
-        setEvents(evr.data?.length ? (evr.data as Event[]) : (await seedTable("events", SEED_EVENTS)) as unknown as Event[]);
+        setEvents(evr.data?.length
+          ? (evr.data as Event[])
+          : (await seedTable("events", SEED_EVENTS)) as unknown as Event[]);
       }
 
-      // Blog posts
+      // Blog posts — seed on first visit if table is empty
       if (!blr.error) {
-        setBlogPosts(blr.data?.length ? (blr.data as BlogPost[]) : (await seedTable("blog_posts", SEED_BLOG_POSTS)) as unknown as BlogPost[]);
+        setBlogPosts(blr.data?.length
+          ? (blr.data as BlogPost[])
+          : (await seedTable("blog_posts", SEED_BLOG_POSTS)) as unknown as BlogPost[]);
       }
 
       // Settings
@@ -225,7 +180,6 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
     } catch (err: unknown) {
       setDbError(err instanceof Error ? err.message : "Unexpected error loading data");
     } finally {
-      // ALWAYS unlock loading — no tab should ever be stuck in skeleton state
       setLoading(false);
     }
   }
@@ -248,9 +202,10 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.from("papers").delete().eq("id", id);
     if (!error) setPapers(prev => prev.filter(p => p.id !== id));
   };
+  // Deletes all papers — no re-seed (seed data was removed)
   const resetPapers = async () => {
     await supabase.from("papers").delete().not("id", "is", null);
-    setPapers(await seedTable("papers", SEED_PAPERS) as Paper[]);
+    setPapers([]);
   };
 
   // ── Books ─────────────────────────────────────────────────────────────────
@@ -267,9 +222,10 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.from("library").delete().eq("id", id);
     if (!error) setBooks(prev => prev.filter(b => b.id !== id));
   };
+  // Deletes all books — no re-seed
   const resetBooks = async () => {
     await supabase.from("library").delete().not("id", "is", null);
-    setBooks(await seedTable("library", SEED_BOOKS) as Book[]);
+    setBooks([]);
   };
 
   // ── Episodes ──────────────────────────────────────────────────────────────
@@ -286,9 +242,10 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
     const { error } = await supabase.from("episodes").delete().eq("id", id);
     if (!error) setEpisodes(prev => prev.filter(e => e.id !== id));
   };
+  // Deletes all episodes — no re-seed
   const resetEpisodes = async () => {
     await supabase.from("episodes").delete().not("id", "is", null);
-    setEpisodes(await seedTable("episodes", SEED_EPISODES) as Episode[]);
+    setEpisodes([]);
   };
 
   // ── Events ────────────────────────────────────────────────────────────────
@@ -307,7 +264,7 @@ export function ContentProvider({ children }: { children: React.ReactNode }) {
   };
   const resetEvents = async () => {
     await supabase.from("events").delete().not("id", "is", null);
-    setEvents(await seedTable("events", SEED_EVENTS) as Event[]);
+    setEvents(await seedTable("events", SEED_EVENTS) as unknown as Event[]);
   };
 
   // ── Blog posts ────────────────────────────────────────────────────────────

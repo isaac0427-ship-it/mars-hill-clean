@@ -125,7 +125,11 @@ export function Papers() {
           </div>
         )}
 
-        {!loading && filtered.length === 0 && (
+        {!loading && papers.length === 0 && (
+          <p className="mt-16 text-center text-sm text-slate-500 italic">Papers coming soon.</p>
+        )}
+
+        {!loading && papers.length > 0 && filtered.length === 0 && (
           <p className="mt-16 text-center text-sm text-slate-500">No papers match that search.</p>
         )}
       </div>

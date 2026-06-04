@@ -448,7 +448,7 @@ function PapersManager() {
             title="Papers"
             count={papers.length}
             loading={loading}
-            onReset={async()=>{ if(confirm("Reset to original 10 papers? PDFs in storage will not be deleted.")){ setBusy(true); await resetPapers(); setFlash("Reset ✓"); setBusy(false); }}}
+            onReset={async()=>{ if(confirm("Delete ALL papers from the database? This cannot be undone. PDFs in storage are not affected.")){ setBusy(true); await resetPapers(); setFlash("All papers deleted"); setBusy(false); }}}
           />
           {loading ? <LoadingList /> : papers.length === 0 ? (
             <p className="mt-6 text-sm text-slate-ink/60">No papers yet. Add one using the form on the left.</p>
@@ -557,7 +557,7 @@ function LibraryManager() {
           </form>
         </div>
         <div>
-          <SectionHead title="Library" count={books.length} loading={loading} onReset={async()=>{if(confirm("Reset to original 12?")){ setBusy(true); await resetBooks(); setFlash("Reset ✓"); setBusy(false); }}} />
+          <SectionHead title="Library" count={books.length} loading={loading} onReset={async()=>{if(confirm("Delete ALL books from the database? This cannot be undone.")){ setBusy(true); await resetBooks(); setFlash("All books deleted"); setBusy(false); }}} />
           {loading ? <LoadingList /> : books.length === 0 ? (
             <p className="mt-6 text-sm text-slate-ink/60">No books yet. Add one using the form on the left.</p>
           ) : (
@@ -639,7 +639,7 @@ function PodcastManager() {
           </form>
         </div>
         <div>
-          <SectionHead title="Episodes" count={episodes.length} loading={loading} onReset={async()=>{if(confirm("Reset to original 4?")){ setBusy(true); await resetEpisodes(); setFlash("Reset ✓"); setBusy(false); }}} />
+          <SectionHead title="Episodes" count={episodes.length} loading={loading} onReset={async()=>{if(confirm("Delete ALL episodes from the database? This cannot be undone.")){ setBusy(true); await resetEpisodes(); setFlash("All episodes deleted"); setBusy(false); }}} />
           {loading ? <LoadingList /> : episodes.length === 0 ? (
             <p className="mt-6 text-sm text-slate-ink/60">No episodes yet. Add one using the form on the left.</p>
           ) : (

@@ -136,7 +136,13 @@ export default function LibraryPage() {
             })}
           </ul>
 
-          {list.length === 0 && (
+          {books.length === 0 && (
+            <p className="mt-16 text-center text-sm text-slate-500 italic">
+              Library coming soon.
+            </p>
+          )}
+
+          {books.length > 0 && list.length === 0 && (
             <p className="mt-16 text-center text-sm text-slate-500">
               No volumes match that search.
             </p>

@@ -69,20 +69,24 @@ export default function PodcastPage() {
       <section className="bg-white py-16 lg:py-20">
         <div className="mx-auto max-w-4xl px-6 lg:px-10">
           <p className="eyebrow">Episodes</p>
-          <ul className="mt-6 divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white shadow-sm">
-            {episodes.map((e) => (
-              <li key={e.id}
-                className="group flex items-center gap-6 px-6 py-5 transition hover:bg-sky/10">
-                <span className="w-8 shrink-0 font-display text-xl text-gold">{e.number}</span>
-                <p className="flex-1 font-medium text-navy">{e.title}</p>
-                <span className="text-xs uppercase tracking-[0.18em] text-slate-500">{e.length}</span>
-                <a href={SPOTIFY} target="_blank" rel="noreferrer"
-                  className="text-slate-400 transition group-hover:translate-x-1 group-hover:text-gold">
-                  →
-                </a>
-              </li>
-            ))}
-          </ul>
+          {episodes.length === 0 ? (
+            <p className="mt-6 text-sm italic text-slate-500">Episodes coming soon.</p>
+          ) : (
+            <ul className="mt-6 divide-y divide-slate-100 rounded-2xl border border-slate-200 bg-white shadow-sm">
+              {episodes.map((e) => (
+                <li key={e.id}
+                  className="group flex items-center gap-6 px-6 py-5 transition hover:bg-sky/10">
+                  <span className="w-8 shrink-0 font-display text-xl text-gold">{e.number}</span>
+                  <p className="flex-1 font-medium text-navy">{e.title}</p>
+                  <span className="text-xs uppercase tracking-[0.18em] text-slate-500">{e.length}</span>
+                  <a href={SPOTIFY} target="_blank" rel="noreferrer"
+                    className="text-slate-400 transition group-hover:translate-x-1 group-hover:text-gold">
+                    →
+                  </a>
+                </li>
+              ))}
+            </ul>
+          )}
 
           <div className="mt-16 border-t border-slate-200 pt-12 text-center">
             <p className="eyebrow">B.B. Warfield</p>

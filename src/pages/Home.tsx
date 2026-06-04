@@ -161,35 +161,37 @@ export default function Home() {
               to="/papers"
               className="shrink-0 inline-flex items-center gap-3 rounded-full border border-navy px-6 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-navy transition hover:bg-navy hover:text-white"
             >
-              Browse all {papers.length} papers →
+              {papers.length > 0 ? `Browse all ${papers.length} papers →` : "View seminary papers →"}
             </Link>
           </div>
 
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {featuredPapers.map((p, idx) => (
-              <a
-                key={idx}
-                href={p.pdf_link ?? "/papers"}
-                target={p.pdf_link ? "_blank" : undefined}
-                rel={p.pdf_link ? "noreferrer" : undefined}
-                className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-7 shadow-sm transition hover:-translate-y-1 hover:border-gold/40 hover:shadow-lg"
-              >
-                <div className="flex items-start justify-between">
-                  <span className="rounded-full bg-sky/60 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-navy">
-                    {p.category}
-                  </span>
-                  <span className="font-display text-xs text-slate-400">{p.year}</span>
-                </div>
-                <h3 className="mt-5 font-display text-xl leading-tight text-navy">{p.title}</h3>
-                <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-600">{p.summary}</p>
-                <div className="mt-7 border-t border-slate-100 pt-4">
-                  <span className="text-xs font-semibold uppercase tracking-[0.16em] text-navy transition group-hover:text-gold">
-                    {p.pdf_link ? "Read paper →" : "View all papers →"}
-                  </span>
-                </div>
-              </a>
-            ))}
-          </div>
+          {featuredPapers.length > 0 && (
+            <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {featuredPapers.map((p, idx) => (
+                <a
+                  key={idx}
+                  href={p.pdf_link ?? "/papers"}
+                  target={p.pdf_link ? "_blank" : undefined}
+                  rel={p.pdf_link ? "noreferrer" : undefined}
+                  className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white p-7 shadow-sm transition hover:-translate-y-1 hover:border-gold/40 hover:shadow-lg"
+                >
+                  <div className="flex items-start justify-between">
+                    <span className="rounded-full bg-sky/60 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-navy">
+                      {p.category}
+                    </span>
+                    <span className="font-display text-xs text-slate-400">{p.year}</span>
+                  </div>
+                  <h3 className="mt-5 font-display text-xl leading-tight text-navy">{p.title}</h3>
+                  <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-600">{p.summary}</p>
+                  <div className="mt-7 border-t border-slate-100 pt-4">
+                    <span className="text-xs font-semibold uppercase tracking-[0.16em] text-navy transition group-hover:text-gold">
+                      {p.pdf_link ? "Read paper →" : "View all papers →"}
+                    </span>
+                  </div>
+                </a>
+              ))}
+            </div>
+          )}
         </div>
       </section>
 
