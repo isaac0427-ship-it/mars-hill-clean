@@ -3,15 +3,7 @@ import { useContent } from "@/context/ContentContext";
 
 const categories = ["All", "Doctrine", "World Religions", "Culture", "History", "Philosophy"] as const;
 
-/** For Supabase Storage URLs, append ?download=true to force browser download instead of inline view. */
 function toDownloadUrl(url: string): string {
-  try {
-    if (url.includes(".supabase.co")) {
-      const u = new URL(url);
-      u.searchParams.set("download", "true");
-      return u.toString();
-    }
-  } catch { /* invalid URL — fall through */ }
   return url;
 }
 

@@ -36,7 +36,7 @@ export default async function handler(req: Request): Promise<Response> {
     return new Response(JSON.stringify({ error: "Email and message are required" }), { status: 400, headers: cors });
   }
 
-  const fromAddress = process.env.RESEND_FROM_EMAIL ?? "Mars Hill Apologetics <onboarding@resend.dev>";
+  const fromAddress = process.env.RESEND_FROM_EMAIL ?? "Mars Hill Apologetics <noreply@nova-systems.app>";
 
   const notifHtml = `
     <div style="font-family:Georgia,serif;max-width:600px;color:#0D1B2A;padding:32px;">
