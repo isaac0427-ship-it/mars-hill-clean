@@ -31,7 +31,7 @@ export function Footer() {
               {[
                 ["/about",           "About"],
                 ["/theology-on-tap", "Theology on Tap"],
-                ["/papers",          "Seminary Papers"],
+                ["/papers",          "Public Publications"],
                 ["/podcast",         "Podcast"],
                 ["/library",         "Library"],
                 ["/blog",            "Blog"],

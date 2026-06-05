@@ -16,7 +16,7 @@ const allLinks = [
   { to: "/",                label: "Home",             num: "01" },
   { to: "/about",           label: "About",            num: "02" },
   { to: "/theology-on-tap", label: "Theology on Tap",  num: "03" },
-  { to: "/papers",          label: "Seminary Papers",  num: "04" },
+  { to: "/papers",          label: "Public Publications",  num: "04" },
   { to: "/podcast",         label: "Podcast",          num: "05" },
   { to: "/library",         label: "Library",          num: "06" },
   { to: "/blog",            label: "Blog",             num: "07" },

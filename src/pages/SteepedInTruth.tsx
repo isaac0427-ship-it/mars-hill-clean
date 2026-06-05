@@ -17,7 +17,7 @@ export default function SteepedInTruth() {
   const currentAuthor = getSetting("steeped_current_author", "John Bunyan");
   const meetingTime   = getSetting("steeped_meeting_time",   "Thursday nights at 7:00 PM EST");
   const contactEmail  = getSetting("steeped_contact_email",  "tlcleon@gmail.com");
-  const pastReadings  = getSetting("steeped_past_readings",  "Mere Christianity — C. S. Lewis")
+  const pastReadings  = (getSetting("steeped_past_readings") || "Mere Christianity — C. S. Lewis")
     .split("\n").map(s => s.trim()).filter(Boolean);
 
   return (
@@ -84,19 +84,17 @@ export default function SteepedInTruth() {
               <h3 className="mt-4 font-display text-3xl font-light text-navy sm:text-4xl">{currentBook}</h3>
               <p className="mt-2 text-sm font-semibold uppercase tracking-[0.2em] text-slate-500">{currentAuthor}</p>
 
-              {pastReadings.length > 0 && (
-                <div className="mt-8 border-t border-slate-100 pt-7">
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-gold">Past Readings</p>
-                  <ul className="mt-4 space-y-3">
-                    {pastReadings.map((r) => (
-                      <li key={r} className="flex items-center gap-3 text-navy">
-                        <span className="h-px w-6 shrink-0 bg-gold" />
-                        <span className="text-sm">{r}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
+              <div className="mt-8 border-t border-slate-100 pt-7">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-gold">Past Readings</p>
+                <ul className="mt-4 space-y-3">
+                  {pastReadings.map((r) => (
+                    <li key={r} className="flex items-center gap-3 text-navy">
+                      <span className="h-px w-6 shrink-0 bg-gold" />
+                      <span className="text-sm">{r}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
 
               <a
                 href={`mailto:${contactEmail}?subject=Join%20Steeped%20in%20Truth%20Book%20Club`}

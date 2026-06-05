@@ -29,7 +29,7 @@ export function Papers() {
           <div className="max-w-2xl">
             <p className="eyebrow">The Archive</p>
             <h2 className="mt-4 font-display text-4xl font-light leading-[1.05] text-navy sm:text-5xl lg:text-6xl">
-              Seminary<span className="italic text-gold"> Papers.</span>
+              Public<span className="italic text-gold"> Publications.</span>
             </h2>
             <p className="mt-5 text-lg text-slate-600">
               A working archive of graduate-level theological writing — open to
@@ -100,7 +100,15 @@ export function Papers() {
                       target="_blank"
                       rel="noreferrer"
                       className="inline-flex items-center gap-2 rounded-full bg-navy px-5 py-2.5 text-xs font-semibold uppercase tracking-[0.16em] text-white transition hover:bg-gold hover:text-navy"
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                        (window as any).gtag?.("event", "file_download", {
+                          file_name: p.title,
+                          file_extension: "pdf",
+                          link_url: p.pdf_link,
+                        });
+                      }}
                     >
                       {/* Download icon */}
                       <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

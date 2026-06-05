@@ -1,4 +1,4 @@
-import hero from "@/assets/hero.jpg";
+import hero from "@/assets/hero-new.png";
 import { Link } from "react-router-dom";
 
 export function Hero() {
@@ -44,7 +44,7 @@ export function Hero() {
               to="/papers"
               className="inline-flex items-center gap-3 rounded-full border border-white/60 px-7 py-4 text-sm font-semibold uppercase tracking-[0.16em] text-white transition hover:border-gold hover:text-gold"
             >
-              Seminary Papers
+              Public Publications
             </Link>
             <Link
               to="/podcast"

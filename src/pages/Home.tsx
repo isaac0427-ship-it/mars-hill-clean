@@ -144,14 +144,14 @@ export default function Home() {
       {/* ── Vision ── */}
       <Vision />
 
-      {/* ── Seminary Papers teaser ── */}
+      {/* ── Public Publications teaser ── */}
       <section id="papers" className="bg-white py-20 lg:py-28">
         <div className="mx-auto max-w-7xl px-6 lg:px-10">
           <div className="flex flex-col items-start justify-between gap-5 lg:flex-row lg:items-end">
             <div>
               <p className="eyebrow">Graduate-Level Writing</p>
               <h2 className="mt-4 font-display text-4xl font-light leading-[1.05] text-navy sm:text-5xl lg:text-6xl">
-                Seminary<span className="italic text-gold"> Papers.</span>
+                Public<span className="italic text-gold"> Publications.</span>
               </h2>
               <p className="mt-4 max-w-xl text-lg text-slate-600">
                 Freely given for study, prayer, and conversation.
@@ -161,7 +161,7 @@ export default function Home() {
               to="/papers"
               className="shrink-0 inline-flex items-center gap-3 rounded-full border border-navy px-6 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-navy transition hover:bg-navy hover:text-white"
             >
-              {papers.length > 0 ? `Browse all ${papers.length} papers →` : "View seminary papers →"}
+              {papers.length > 0 ? `Browse all ${papers.length} publications →` : "View all publications →"}
             </Link>
           </div>
 

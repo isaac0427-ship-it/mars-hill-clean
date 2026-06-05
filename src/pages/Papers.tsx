@@ -7,7 +7,7 @@ export default function PapersPage() {
   return (
     <main className="min-h-screen bg-white text-foreground">
       <PageMeta
-        title="Seminary Papers — Mars Hill Apologetics"
+        title="Public Publications — Mars Hill Apologetics"
         description="A working archive of graduate-level theological writing by John Leonetti — open to the church, freely given for study, prayer, and conversation."
         path="/papers"
       />
@@ -17,7 +17,7 @@ export default function PapersPage() {
         <div className="mx-auto max-w-5xl px-6 text-center lg:px-10">
           <p className="eyebrow">Open Access</p>
           <h1 className="mt-5 font-display text-5xl font-light leading-[1.02] text-navy sm:text-6xl lg:text-7xl">
-            Seminary<span className="italic text-gold"> Papers.</span>
+            Public<span className="italic text-gold"> Publications.</span>
           </h1>
           <div className="gold-rule mx-auto my-7 max-w-[8rem]" />
           <p className="mx-auto max-w-2xl text-lg leading-relaxed text-slate-600">

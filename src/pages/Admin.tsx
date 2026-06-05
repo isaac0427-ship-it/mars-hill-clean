@@ -1160,7 +1160,7 @@ type TabDef = { id: Tab; label: string; icon: string };
 
 const CONTENT_TABS: TabDef[] = [
   { id:"blog",     label:"Blog",             icon:"blog" },
-  { id:"papers",   label:"Seminary Papers",  icon:"papers" },
+  { id:"papers",   label:"Public Publications",  icon:"papers" },
   { id:"library",  label:"Library",          icon:"library" },
   { id:"podcast",  label:"Podcast",          icon:"podcast" },
   { id:"events",   label:"Theology on Tap",  icon:"events" },
