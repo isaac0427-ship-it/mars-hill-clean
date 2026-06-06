@@ -26,9 +26,7 @@ type BlogPostSeed = Omit<BlogPost, "id">;
 // Supabase only. An empty Supabase result renders an empty-state message.
 
 export const SEED_EVENTS: EventSeed[] = [
-  { title: "The Sovereignty of God in Suffering",  date_text: "Mar 14", location: "In Person · CT",  type: "in-person" },
-  { title: "Reading Calvin's Institutes, Book I",  date_text: "Apr 11", location: "Hybrid · Zoom",   type: "hybrid" },
-  { title: "Machen on Liberalism, a Century Later",date_text: "May 09", location: "Guest Speaker",    type: "hybrid" },
+  { title: "The Bane of Pietism on American Culture", date_text: "Jun 12", location: "In Person CT", type: "in-person" },
 ];
 
 export const SEED_BLOG_POSTS: BlogPostSeed[] = [
@@ -44,8 +42,8 @@ export const DEFAULT_SETTINGS: SiteSettings = {
   hero_tagline:         "Defending truth. Pursuing wisdom. Equipping men to think Biblically — with the rigor of the academy and the reverence of the church.",
   scripture_quote:      "Always be prepared to give an answer.",
   scripture_reference:  "1 Peter 3:15",
-  youtube_url:          "https://www.youtube.com/channel/UCIDs8zPms4tbsYJKOu",
-  facebook_url:         "https://www.facebook.com/marshillapologetics",
+  youtube_url:          "https://www.youtube.com/@marshillnewengland2027",
+  facebook_url:         "https://www.facebook.com/share/g/14dGK4RaWGr/",
   spotify_url:          "https://open.spotify.com/show/4xnDbJFrb1gpwHfyEabZoG",
   steeped_current_book:    "Pilgrim's Progress",
   steeped_current_author:  "John Bunyan",

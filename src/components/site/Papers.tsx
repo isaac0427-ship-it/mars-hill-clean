@@ -29,7 +29,7 @@ export function Papers() {
           <div className="max-w-2xl">
             <p className="eyebrow">The Archive</p>
             <h2 className="mt-4 font-display text-4xl font-light leading-[1.05] text-navy sm:text-5xl lg:text-6xl">
-              Public<span className="italic text-gold"> Publications.</span>
+              Seminary Papers<span className="italic text-gold"> / Publications.</span>
             </h2>
             <p className="mt-5 text-lg text-slate-600">
               A working archive of graduate-level theological writing — open to

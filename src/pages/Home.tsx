@@ -6,7 +6,7 @@ import { Footer } from "@/components/site/Footer";
 import { PodcastPlayer } from "@/components/site/PodcastPlayer";
 import { PageMeta } from "@/components/site/PageMeta";
 import { useContent } from "@/context/ContentContext";
-import founder from "@/assets/founder-new.jpg";
+import founder from "@/assets/founder-real.jpg";
 import tot from "@/assets/tot.jpg";
 
 export default function Home() {
@@ -151,7 +151,7 @@ export default function Home() {
             <div>
               <p className="eyebrow">Graduate-Level Writing</p>
               <h2 className="mt-4 font-display text-4xl font-light leading-[1.05] text-navy sm:text-5xl lg:text-6xl">
-                Public<span className="italic text-gold"> Publications.</span>
+                Seminary Papers<span className="italic text-gold"> / Publications.</span>
               </h2>
               <p className="mt-4 max-w-xl text-lg text-slate-600">
                 Freely given for study, prayer, and conversation.

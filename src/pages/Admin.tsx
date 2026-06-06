@@ -1130,6 +1130,106 @@ function DomainTab() {
   );
 }
 
+// ── Site Analytics tab ──────────────────────────────────────────────────────────
+
+type GAMetric = { visitors: string; topPages: { path: string; views: string }[]; pdfDownloads: string; contactSubmissions: string };
+type AnalyticsState = { status: "idle" | "loading" | "ok" | "unconfigured" | "error"; data?: GAMetric; error?: string };
+
+function AnalyticsTab() {
+  const [state, setState] = React.useState<AnalyticsState>({ status: "idle" });
+
+  const load = React.useCallback(async () => {
+    setState({ status: "loading" });
+    try {
+      const res = await fetch("/api/analytics");
+      const json = await res.json() as { configured?: boolean; error?: string } & Partial<GAMetric>;
+      if (!json.configured) {
+        setState({ status: "unconfigured" });
+      } else if (json.error) {
+        setState({ status: "error", error: json.error });
+      } else {
+        setState({ status: "ok", data: { visitors: json.visitors ?? "0", topPages: json.topPages ?? [], pdfDownloads: json.pdfDownloads ?? "0", contactSubmissions: json.contactSubmissions ?? "0" } });
+      }
+    } catch (e: unknown) {
+      setState({ status: "error", error: e instanceof Error ? e.message : "Unknown error" });
+    }
+  }, []);
+
+  React.useEffect(() => { load(); }, [load]);
+
+  return (
+    <div className="space-y-8">
+      <div className="flex items-center justify-between">
+        <h2 className="font-display text-2xl text-navy">Site Analytics</h2>
+        <button onClick={load} disabled={state.status === "loading"} className={btnSecondary}>
+          {state.status === "loading" ? "Loading…" : "Refresh"}
+        </button>
+      </div>
+
+      {state.status === "unconfigured" && (
+        <div className="rounded-2xl border border-gold/30 bg-amber-50 p-6 text-sm text-navy space-y-3">
+          <p className="font-semibold text-base">Google Analytics credentials not configured.</p>
+          <p>To enable this dashboard, add the following environment variables in your <strong>Vercel project → Settings → Environment Variables</strong>:</p>
+          <ul className="mt-3 space-y-2 font-mono text-xs">
+            <li className="rounded bg-amber-100 px-3 py-1.5"><strong>GA_PROPERTY_ID</strong> — Your numeric GA4 property ID (find it in GA → Admin → Property Settings)</li>
+            <li className="rounded bg-amber-100 px-3 py-1.5"><strong>GOOGLE_SERVICE_ACCOUNT_KEY</strong> — Full JSON of a Google service account with <em>Viewer</em> access to your GA property</li>
+          </ul>
+          <p className="text-xs text-slate-500 pt-2">After adding variables, redeploy the site and return here.</p>
+        </div>
+      )}
+
+      {state.status === "error" && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-5 py-4 text-sm text-red-700">
+          <strong>Error fetching analytics:</strong> {state.error}
+        </div>
+      )}
+
+      {state.status === "loading" && (
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {[1,2,3,4].map(i => <div key={i} className="h-28 animate-pulse rounded-2xl bg-sky/20" />)}
+        </div>
+      )}
+
+      {state.status === "ok" && state.data && (
+        <>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { label: "Visitors This Month", value: state.data.visitors, sub: "active users" },
+              { label: "PDF Downloads",       value: state.data.pdfDownloads, sub: "this month" },
+              { label: "Contact Submissions", value: state.data.contactSubmissions, sub: "this month" },
+              { label: "Top Pages",           value: String(state.data.topPages.length), sub: "tracked pages" },
+            ].map(m => (
+              <div key={m.label} className="rounded-2xl border border-border bg-sky/10 p-6">
+                <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-ink">{m.label}</p>
+                <p className="mt-3 font-display text-4xl font-light text-navy">{m.value}</p>
+                <p className="mt-1 text-xs uppercase tracking-[0.18em] text-gold">{m.sub}</p>
+              </div>
+            ))}
+          </div>
+
+          {state.data.topPages.length > 0 && (
+            <div className="rounded-2xl border border-border bg-white p-6">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-slate-ink">Top Pages This Month</p>
+              <ul className="mt-4 divide-y divide-border">
+                {state.data.topPages.map((p) => (
+                  <li key={p.path} className="flex items-center justify-between py-3 text-sm">
+                    <span className="font-mono text-navy">{p.path}</span>
+                    <span className="ml-4 shrink-0 rounded-full bg-sky/40 px-3 py-0.5 text-xs font-semibold text-navy">{p.views} views</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </>
+      )}
+
+      <div className="rounded-2xl border border-border bg-sky/20 p-5 text-xs text-slate-ink">
+        Data is pulled from <strong>Google Analytics G-5B0Z4RKP11</strong> via the GA4 Data API. Metrics reflect the current calendar month.
+      </div>
+    </div>
+  );
+}
+
 // ── Admin icons ────────────────────────────────────────────────────────────────
 
 const ICON_PATHS: Record<string, string> = {
@@ -1141,8 +1241,9 @@ const ICON_PATHS: Record<string, string> = {
   steeped:  "M18 8h1a4 4 0 0 1 0 8h-1M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8zM6 1v3M10 1v3M14 1v3",
   homepage: "M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z",
   social:   "M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 1 1 0-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 1 0 5.367-2.684 3 3 0 0 0-5.367 2.684zm0 9.316a3 3 0 1 0 5.368 2.684 3 3 0 0 0-5.368-2.684z",
-  domain:   "M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 0 1 9-9",
-  support:  "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
+  domain:    "M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 0 1 9-9",
+  support:   "M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 0 1-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z",
+  analytics: "M9 19v-6a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2zm0 0V9a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v10m-6 0a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2m0 0V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-2a2 2 0 0 1-2-2z",
 };
 
 function AdminIcon({ name }: { name: string }) {
@@ -1155,22 +1256,23 @@ function AdminIcon({ name }: { name: string }) {
 
 // ── Admin shell ────────────────────────────────────────────────────────────────
 
-type Tab = "blog"|"papers"|"library"|"podcast"|"events"|"steeped"|"homepage"|"social"|"support"|"domain";
+type Tab = "blog"|"papers"|"library"|"podcast"|"events"|"steeped"|"homepage"|"social"|"support"|"domain"|"analytics";
 type TabDef = { id: Tab; label: string; icon: string };
 
 const CONTENT_TABS: TabDef[] = [
   { id:"blog",     label:"Blog",             icon:"blog" },
-  { id:"papers",   label:"Public Publications",  icon:"papers" },
+  { id:"papers",   label:"Seminary Papers/Publications",  icon:"papers" },
   { id:"library",  label:"Library",          icon:"library" },
   { id:"podcast",  label:"Podcast",          icon:"podcast" },
   { id:"events",   label:"Theology on Tap",  icon:"events" },
   { id:"steeped",  label:"Steeped in Truth", icon:"steeped" },
 ];
 const SETTINGS_TABS: TabDef[] = [
-  { id:"homepage", label:"Homepage",         icon:"homepage" },
-  { id:"social",   label:"Social Links",     icon:"social" },
-  { id:"domain",   label:"Domain",           icon:"domain" },
-  { id:"support",  label:"Support",          icon:"support" },
+  { id:"homepage",  label:"Homepage",        icon:"homepage" },
+  { id:"social",    label:"Social Links",    icon:"social" },
+  { id:"analytics", label:"Site Analytics",  icon:"analytics" },
+  { id:"domain",    label:"Domain",          icon:"domain" },
+  { id:"support",   label:"Support",         icon:"support" },
 ];
 
 export default function AdminPage() {
@@ -1251,8 +1353,9 @@ export default function AdminPage() {
           {activeTab==="steeped"  && <SteepedManager />}
           {activeTab==="homepage" && <HomepageManager />}
           {activeTab==="social"   && <SocialLinksManager />}
-          {activeTab==="support"  && <SupportTab />}
-          {activeTab==="domain"   && <DomainTab />}
+          {activeTab==="support"   && <SupportTab />}
+          {activeTab==="domain"    && <DomainTab />}
+          {activeTab==="analytics" && <AnalyticsTab />}
         </div>
 
         {/* Nova Systems footer */}

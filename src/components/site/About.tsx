@@ -1,4 +1,4 @@
-import founder from "@/assets/founder-new.jpg";
+import founder from "@/assets/founder-real.jpg";
 
 export function About() {
   return (

@@ -20,7 +20,6 @@ export function Hero() {
 
       <div className="relative mx-auto flex min-h-screen max-w-7xl flex-col justify-end px-6 pb-20 pt-36 lg:px-10 lg:pb-28">
         <div className="max-w-3xl">
-          <p className="eyebrow text-gold">Est. 1987 · Connecticut</p>
           <h1 className="mt-5 font-display text-5xl font-light leading-[1.02] text-white sm:text-6xl lg:text-[5.5rem]">
             Mars Hill
             <br />
@@ -44,7 +43,7 @@ export function Hero() {
               to="/papers"
               className="inline-flex items-center gap-3 rounded-full border border-white/60 px-7 py-4 text-sm font-semibold uppercase tracking-[0.16em] text-white transition hover:border-gold hover:text-gold"
             >
-              Public Publications
+              Seminary Papers/Publications
             </Link>
             <Link
               to="/podcast"

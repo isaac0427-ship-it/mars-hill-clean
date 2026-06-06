@@ -5,7 +5,7 @@ import { useContent } from "@/context/ContentContext";
 const navLinks = [
   { to: "/about",           label: "About" },
   { to: "/theology-on-tap", label: "Theology on Tap" },
-  { to: "/papers",          label: "Papers" },
+  { to: "/papers",          label: "Seminary Papers" },
   { to: "/podcast",         label: "Podcast" },
   { to: "/library",         label: "Library" },
   { to: "/blog",            label: "Blog" },
@@ -16,7 +16,7 @@ const allLinks = [
   { to: "/",                label: "Home",             num: "01" },
   { to: "/about",           label: "About",            num: "02" },
   { to: "/theology-on-tap", label: "Theology on Tap",  num: "03" },
-  { to: "/papers",          label: "Public Publications",  num: "04" },
+  { to: "/papers",          label: "Seminary Papers/Publications",  num: "04" },
   { to: "/podcast",         label: "Podcast",          num: "05" },
   { to: "/library",         label: "Library",          num: "06" },
   { to: "/blog",            label: "Blog",             num: "07" },
@@ -32,8 +32,8 @@ export function Nav() {
   const { getSetting }          = useContent();
 
   const SPOTIFY  = getSetting("spotify_url",  "https://open.spotify.com/show/4xnDbJFrb1gpwHfyEabZoG");
-  const YOUTUBE  = getSetting("youtube_url",  "https://www.youtube.com/channel/UCIDs8zPms4tbsYJKOu");
-  const FACEBOOK = getSetting("facebook_url", "https://www.facebook.com/marshillapologetics");
+  const YOUTUBE  = getSetting("youtube_url",  "https://www.youtube.com/@marshillnewengland2027");
+  const FACEBOOK = getSetting("facebook_url", "https://www.facebook.com/share/g/14dGK4RaWGr/");
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 20);

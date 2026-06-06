@@ -4,8 +4,8 @@ import { useContent } from "@/context/ContentContext";
 export function Footer() {
   const { getSetting } = useContent();
   const SPOTIFY  = getSetting("spotify_url",  "https://open.spotify.com/show/4xnDbJFrb1gpwHfyEabZoG");
-  const YOUTUBE  = getSetting("youtube_url",  "https://www.youtube.com/channel/UCIDs8zPms4tbsYJKOu");
-  const FACEBOOK = getSetting("facebook_url", "https://www.facebook.com/marshillapologetics");
+  const YOUTUBE  = getSetting("youtube_url",  "https://www.youtube.com/@marshillnewengland2027");
+  const FACEBOOK = getSetting("facebook_url", "https://www.facebook.com/share/g/14dGK4RaWGr/");
 
   return (
     <footer className="border-t border-slate-200 bg-white">
@@ -31,7 +31,7 @@ export function Footer() {
               {[
                 ["/about",           "About"],
                 ["/theology-on-tap", "Theology on Tap"],
-                ["/papers",          "Public Publications"],
+                ["/papers",          "Seminary Papers/Publications"],
                 ["/podcast",         "Podcast"],
                 ["/library",         "Library"],
                 ["/blog",            "Blog"],

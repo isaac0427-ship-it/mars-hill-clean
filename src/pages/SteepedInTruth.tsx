@@ -5,9 +5,9 @@ import { PageMeta } from "@/components/site/PageMeta";
 import { useContent } from "@/context/ContentContext";
 
 const otherClubs = [
-  { name: "Wells of Wisdom Book Club",          href: "https://wowbookclubs.com",   detail: "wowbookclubs.com" },
-  { name: "Christians Read Fiction Book Club",  href: "https://www.facebook.com",   detail: "On Facebook" },
-  { name: "Christian Fiction Reading Challenge", href: "https://www.facebook.com",  detail: "On Facebook" },
+  { name: "Wells of Wisdom Book Club",          href: "https://wowbookclubs.com",                                       detail: "wowbookclubs.com" },
+  { name: "Christians Read Fiction Book Club",  href: "https://www.facebook.com/share/g/1GQEpnyUMp/",                  detail: "On Facebook" },
+  { name: "Christian Fiction Reading Challenge", href: "https://www.facebook.com/profile.php?id=61585823760299",        detail: "On Facebook" },
 ];
 
 export default function SteepedInTruth() {
@@ -63,10 +63,6 @@ export default function SteepedInTruth() {
               <div className="rounded-xl border border-slate-200 bg-sky/10 p-5">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-gold">Meeting Time</p>
                 <p className="mt-2 font-medium text-navy">{meetingTime}</p>
-              </div>
-              <div className="rounded-xl border border-slate-200 bg-sky/10 p-5">
-                <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-gold">Format</p>
-                <p className="mt-2 text-navy">In person · Zoom available</p>
               </div>
               <div className="rounded-xl border border-slate-200 bg-sky/10 p-5">
                 <p className="text-[10px] font-semibold uppercase tracking-[0.24em] text-gold">Contact</p>
